@@ -3,7 +3,6 @@ import {
     deleteDbSession,
     deleteExpiredDbSessions,
     getDbSession,
-    getUserRoles,
     insertDbSession
 } from '../db';
 import type { SessionInfo, SessionInfoCache } from '../db/types';
@@ -28,20 +27,18 @@ function getSessionId(): SessionId {
     return randomBytes(32).toString('hex');
 }
 
-export function createSession(username: string, maxAge: number): string {
+export function createSession(username: string, role: string, maxAge: number): string {
     let sessionId: SessionId = '';
 
     do {
         sessionId = getSessionId();
     } while (sessionStore.has(sessionId));
 
-    const roles = getUserRoles(username);
-
     const expiresAt = Date.now() + maxAge * 1000;
 
     const data: SessionInfo = {
         username,
-        roles
+        role
     };
     insertDbSession(sessionId, data, expiresAt);
 

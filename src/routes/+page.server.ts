@@ -1,31 +1,32 @@
 import {type Actions, type Cookies, fail, redirect} from "@sveltejs/kit";
-import {createPlayerUser, getQuizzes} from "$lib/server/db";
+import {createPlayerUser, getCurrentQuiz} from "$lib/server/db";
 import {createSession} from "$lib/server/sessionStore";
-import type { PageServerLoad } from './$types';
+import type {PageServerLoad} from './$types';
 
 function performLogin(cookies: Cookies, username: string) {
     const maxAge = 60 * 60 * 24 * 7; // 7 days
-    const sessionId = createSession(username, maxAge);
-    cookies.set('sessionId', sessionId, {path:'/', maxAge: maxAge});
+    const sessionId = createSession(username, 'player', maxAge);
+    cookies.set('sessionId', sessionId, {path: '/', maxAge: maxAge});
 }
 
-export const load = (({ locals }) => {
-    const quizzes = getQuizzes();
-    const { username } = locals;
+export const load = (({locals}) => {
+    const {username} = locals;
+    const current_quiz = getCurrentQuiz();
 
     return {
-        quizzes,
-        loggedIn: !!username
+        loggedIn: !!username,
+        current_quiz
     };
 }) satisfies PageServerLoad
 
 export const actions: Actions = {
     register: async ({request, cookies}) => {
         const data = await request.formData();
+        const current_quiz = data.get('current_quiz')?.toString();
         const username = data.get('username')?.toString();
 
-        if (username) {
-            await createPlayerUser(username, 'player');
+        if (username && current_quiz) {
+            await createPlayerUser(username, current_quiz);
             performLogin(cookies, username);
             throw redirect(303, '/play');
         } else {

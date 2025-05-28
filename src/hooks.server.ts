@@ -8,18 +8,24 @@ export const handle = (async ({event, resolve}) => {
         const session = getSession(sessionId);
         if (session) {
             event.locals.username = session.username;
-            event.locals.roles = session.roles;
+            event.locals.role = session.role;
 
-            if (!event.locals.roles && event.route.id !== null && (event.route.id.startsWith('/admin') || event.route.id.startsWith('play'))) {
+            if (!event.locals.role && event.route.id !== null && (event.route.id.startsWith('/admin') || event.route.id.startsWith('/play'))) {
                 redirect(302, '/')
             }
-            if (!event.locals.roles.includes('admin') && event.locals.roles.includes('player') && event.route.id !== null && event.route.id.startsWith('/admin')) {
+            if (event.locals.role !== 'admin' && event.locals.role === 'player' && event.route.id !== null && event.route.id.startsWith('/admin')) {
                 redirect(302, '/login');
+            }
+            if (event.locals.role === 'admin' && event.route.id !== null && event.route.id === '/') {
+                redirect(302, '/admin');
+            }
+            if (event.locals.role === 'player' && event.route.id !== null && event.route.id === '/') {
+                redirect(302, '/play');
             }
         } else {
             cookies.delete('sessionId', {path: '/'});
             event.locals.username = undefined;
-            event.locals.roles = undefined;
+            event.locals.role = undefined;
 
         }
     } else {

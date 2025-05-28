@@ -1,19 +1,29 @@
 <script lang="ts">
+    import type {PageData} from "./$types";
+    import type {Template} from "$lib/server/db/types";
+
+    export let data: PageData;
     let title = '';
     let number_of_rounds = 7;
-    type roundType = { name: string, type: string }
-    let selectedRounds: roundType[] = [];
-    let roundTypes: roundType[] = [
-        {name: "Исполнитель - Произведение", type: "artist-track"},
-        {name: "Исполнитель", type: "artist"},
-    ];
+    let roundTypes: string[] = [];
+    let roundTemplates: Template[] = data.templates;
+    roundTypes.length = number_of_rounds;
+    let selectedRounds: string[] = [];
+    const maxRounds = 20;
+    const minRounds = 1;
 
-    function toggleRound(type: roundType) {
-        if (selectedRounds.includes(type)) {
-            selectedRounds = selectedRounds.filter(t => t !== type);
-        } else if (selectedRounds.length < 7) {
-            selectedRounds = [...selectedRounds, type];
+    function handleChange() {
+        if (number_of_rounds === null) {
+            return;
         }
+        if (number_of_rounds > maxRounds) {
+            number_of_rounds = maxRounds;
+        }
+        if (number_of_rounds < minRounds) {
+            number_of_rounds = minRounds;
+        }
+        roundTypes.length = number_of_rounds;
+        selectedRounds.length = number_of_rounds;
     }
 </script>
 
@@ -34,30 +44,22 @@
                     id="number-of-rounds"
                     type="number"
                     class="m-4 is-centered"
-                    value={number_of_rounds}
+                    bind:value={number_of_rounds}
+                    on:input={() => handleChange()}
                     name='number_of_rounds'
-                    min="1"
-                    max="100"
+                    min="{minRounds}"
+                    max="{maxRounds}"
             >
         </div>
-        <div class="rounds-section">
-            <h1 class="title has-text-centered mb-5">Выберите раунды</h1>
-            <div class="round-types">
-                {#each roundTypes as type}
-                    <button
-                            type="button"
-                            class="round-button"
-                            class:selected={selectedRounds.includes(type)}
-                            on:click={() => toggleRound(type)}
-                    >
-                        {type.name}
-                    </button>
-                {/each}
-            </div>
-        </div>
         <div>
-            {#each roundTypes as type}
-
+            {#each roundTypes as type, index}
+                <h1>Раунд {index + 1}</h1>
+                <select id="list{index}" bind:value={selectedRounds[index]}>
+                    <option value=null>Новый шаблон</option>
+                    {#each roundTemplates as template}
+                        <option value="{template.id}">{template.id}</option>
+                    {/each}
+                </select>
             {/each}
         </div>
         <input type="hidden" id="rounds" name="rounds" value="{JSON.stringify(selectedRounds)}"/>
@@ -90,30 +92,30 @@
         gap: 2rem;
     }
 
-    .round-types {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
+    /*.round-types {*/
+    /*    display: grid;*/
+    /*    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));*/
+    /*    gap: 1rem;*/
+    /*    margin-top: 1rem;*/
+    /*}*/
 
-    .rounds-section {
-        border: 1px solid #ddd;
-        padding: 1rem;
-        border-radius: 4px;
-    }
+    /*.rounds-section {*/
+    /*    border: 1px solid #ddd;*/
+    /*    padding: 1rem;*/
+    /*    border-radius: 4px;*/
+    /*}*/
 
-    .round-button {
-        padding: 1rem;
-        border: 2px solid orangered;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
+    /*.round-button {*/
+    /*    padding: 1rem;*/
+    /*    border: 2px solid orangered;*/
+    /*    border-radius: 4px;*/
+    /*    background: white;*/
+    /*    cursor: pointer;*/
+    /*    transition: all 0.2s;*/
+    /*}*/
 
-    .round-button.selected {
-        background: orangered;
-        color: white;
-    }
+    /*.round-button.selected {*/
+    /*    background: orangered;*/
+    /*    color: white;*/
+    /*}*/
 </style>

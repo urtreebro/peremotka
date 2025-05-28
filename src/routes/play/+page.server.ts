@@ -1,9 +1,9 @@
-import {getQuizzes} from "$lib/server/db";
+import {getCurrentQuiz} from "$lib/server/db";
 import type {PageServerLoad} from "./$types";
 
 export const load = (() => {
-    const quizzes = getQuizzes();
+    const quiz = getCurrentQuiz();
     return {
-        quizzes,
+        quiz: quiz[0],
     };
 }) satisfies PageServerLoad;

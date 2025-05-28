@@ -1,6 +1,6 @@
 export type SessionInfo = {
     username: string;
-    roles: string[];
+    role: string;
 };
 
 export type SessionInfoCache = SessionInfo & {
@@ -10,19 +10,28 @@ export type SessionInfoCache = SessionInfo & {
 export type Quiz = {
     title: string;
     slug: string;
+    is_current: boolean;
     rounds: Round[];
 }
 
 export type Round = {
     round_id: number;
-    type: string;
-    questions: Question[];
+    round_type: string;
     round_number: number;
     quiz_id: string;
+    round_template_id: string;
+}
+
+export type Template = {
+    id: string;
+    title: string;
+    number_of_questions: number;
+    number_of_fields: number;
+    placeholders: string;
+    specials: string;
 }
 
 export type Question = {
-    type: string;
     questionFields: string[];
-    round_id: string;
+    round_id: number;
 }

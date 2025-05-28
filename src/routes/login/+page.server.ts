@@ -4,7 +4,7 @@ import { fail, redirect, type Actions, type Cookies } from '@sveltejs/kit';
 
 function performLogin(cookies: Cookies, username: string) {
     const maxAge = 60 * 60 * 24 * 7; // 7 days
-    const sessionId = createSession(username, maxAge);
+    const sessionId = createSession(username, 'admin', maxAge);
     cookies.set('sessionId', sessionId, {path:'/', maxAge: maxAge});
 }
 
@@ -15,7 +15,7 @@ export const actions: Actions = {
         const password = data.get('password')?.toString();
 
         if (username && password) {
-            await createAdminUser(username, password, 'admin');
+            await createAdminUser(username, password);
             performLogin(cookies, username);
             throw redirect(303, '/admin');
         } else {

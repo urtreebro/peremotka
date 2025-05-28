@@ -1,63 +1,52 @@
-import {createQuestion, createQuestionField, getRound, getRounds} from '$lib/server/db'
+import {
+    createQuestion,
+    createQuestionField,
+    getRound,
+    getRoundTemplate,
+} from '$lib/server/db'
 import type {PageServerLoad} from './$types';
 import {type Actions, redirect} from "@sveltejs/kit";
+import type {Question} from "$lib/server/db/types";
 
+import {_rounds} from '../../../../../create/+page.server'
+
+let slug = '';
+let round_number: number;
 export const actions: Actions = {
     submit: async ({request}) => {
         const data = await request.formData();
-        const questions1 = data.getAll('questions').toString();
-        const questions = JSON.parse(questions1);
-        const quiz_id = data.get('quiz_id')?.toString();
-        const round_id = data.get('round_id')?.toString();
-        const round_type = data.get('round_type')?.toString();
-        const round_number = data.get('round_number')?.toString();
+        const questions_str = data.getAll('questions').toString();
+        const questions: Question[] = JSON.parse(questions_str);
         console.log(questions);
-        if (quiz_id && round_id && round_number) {
-            const rounds = getRounds(quiz_id);
-            if (round_type === 'artist-track') {
-                for (const question of questions) {
-                    console.log(question, "PALLSPDOCp");
-                    const index = questions.indexOf(question);
-                    const question_id = createQuestion(parseInt(round_id));
-                    let artist = 'artist-' + index.toString();
-                    let track = 'track-' + index.toString();
-                    const artistField = data.get(artist)?.toString();
-                    const trackField = data.get(track)?.toString();
-                    if (artistField && trackField) {
-                        createQuestionField(await question_id, 'Исполнитель', artistField);
-                        createQuestionField(await question_id, 'Песня', trackField);
-                    }
-                }
-                if (parseInt(round_number) < rounds.length) {
-                    throw redirect(303, `/admin/edit/${quiz_id}/round/${parseInt(round_number) + 1}/questions`);
-                } else {
-                    throw redirect(303, `/admin`);
-                }
+        for (const question of questions) {
+            let question_id = <number>await createQuestion(question.round_id);
+            for (const field of question.questionFields) {
+                await createQuestionField(question_id, field);
             }
-            else if (round_type === 'artist'){
-                for (const question of questions) {
-                    const index = questions.indexOf(question);
-                    const question_id = createQuestion(parseInt(round_id));
-                    let artist = 'artist-' + index.toString();
-                    const artistField = data.get(artist)?.toString();
-                    if (artistField) {
-                        createQuestionField(await question_id, 'Исполнитель', artistField);
-                    }
-                }
-                if (parseInt(round_number) < rounds.length) {
-                    throw redirect(303, `/admin/edit/${quiz_id}/round/${parseInt(round_number) + 1}/questions`);
-                } else {
-                    throw redirect(303, `/admin`);
-                }
+        }
+        console.log(_rounds);
+        if (round_number + 1 <= _rounds.length) {
+            console.log(round_number, _rounds[round_number - 1]);
+            if (_rounds[round_number].round_template_id != 'null'){
+                throw redirect(303, `/admin/edit/${slug}/round/${round_number + 1}/questions`);
             }
+            else {
+                throw redirect(303, `/admin/edit/${slug}/round/${round_number + 1}/new`);
+            }
+        }
+        else{
+            redirect(303, '/admin');
         }
     }
 }
 
 export const load = (({params}) => {
     const round = getRound(params.slug, parseInt(params.round_id));
-    const slug = params.slug;
+    const round_template = getRoundTemplate(round.round_template_id);
+    slug = params.slug;
+    round_number = parseInt(params.round_id);
     return {
+        round_template,
         round,
         slug,
     };

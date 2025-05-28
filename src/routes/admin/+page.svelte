@@ -26,6 +26,11 @@
                             <h3 class="title has-text-weight-bold m-3">{quiz.title}</h3>
                             <input type="hidden" value={quiz.slug} name="slug"/>
                             <div class="flex-box-2">
+                                {#if !quiz.is_current}
+                                    <button class="flex-box-2 m-3 make_current_btn" formaction="?/make_current">Сделать текущим</button>
+                                {:else}
+                                    <button class="flex-box-2 m-3 unmake_current_btn" formaction="?/unmake_current">Текущая игра</button>
+                                {/if}
                                 <button class="flex-box-2 mt-3 mb-3"  formaction="?/edit">Редактировать</button>
                                 <button class="flex-box-2 m-3" formaction="?/delete">Удалить</button>
                             </div>
@@ -73,5 +78,15 @@
         background-color: orangered;
         color: white;
         cursor: pointer;
+    }
+
+    .make_current_btn {
+        color: white;
+        background-color: darkgray;
+    }
+
+    .unmake_current_btn {
+        color: white;
+        background-color: limegreen;
     }
 </style>

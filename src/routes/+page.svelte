@@ -1,30 +1,39 @@
-<script>
+<script lang="ts">
     /** @type {import('./$types').ActionData} */
+    import type {PageData} from './$types';
 
+    export let data: PageData;
     export let form;
-
+    let current_quizzes = data.current_quiz;
+    let current_quiz = current_quizzes[0];
 </script>
 
 <div class="container" style="max-width: 50ch;">
-    <form method="POST" action="?/register">
-        <input class="input my-2" type="text" placeholder="Название команды" name="username"/>
-        {#if form?.errorMessage}
-            <p class="has-text-danger">{form.errorMessage}</p>
-        {/if}
-        <div>
-            <button class="button mt-4 mr-3 is-fullwidth" type="submit" formaction="?/register">Войти</button>
-        </div>
-    </form>
+    {#if current_quiz}
+        <h1 class="has-text-weight-bold title m-6 is-center">Текущая игра: {current_quiz.title}</h1>
+        <form method="POST" action="?/register">
+            <input class="input my-2" type="text" placeholder="Название команды" name="username"/>
+            {#if form?.errorMessage}
+                <p class="has-text-danger">{form.errorMessage}</p>
+            {/if}
+            <div>
+                <button class="button mt-4 mr-3 is-fullwidth" type="submit" formaction="?/register">Войти</button>
+            </div>
+            <input type="hidden" name="current_quiz" value={current_quiz.slug}/>
+        </form>
+    {:else }
+        <h1 class="has-text-weight-bold title">Ждем следующую игру</h1>
+    {/if}
+
 </div>
 
 <style>
     .container {
-        position: absolute;
-        top: 60%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 50%;
-        height: 50%
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 70vh;
+        text-align: center;
     }
 
     button {
@@ -39,7 +48,6 @@
     input {
         padding: 0.5rem;
         font-size: 1.1rem;
+        vertical-align: center;
     }
-
-
 </style>

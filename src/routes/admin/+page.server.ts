@@ -1,4 +1,4 @@
-import {deleteQuiz, getQuizzes} from "$lib/server/db";
+import {deleteQuiz, getCurrentQuiz, getQuizzes, makeCurrentQuiz} from "$lib/server/db";
 import type {PageServerLoad} from "./$types";
 import {type Actions, redirect} from "@sveltejs/kit";
 
@@ -21,5 +21,24 @@ export const actions: Actions = {
         const data = await request.formData();
         const quiz_id = data.get('slug')?.toString();
         redirect(303, `/admin/edit/${quiz_id}/round/1/questions`);
+    },
+    make_current: async ({request}) => {
+        const current_quizzes = getCurrentQuiz();
+        const current_quiz = current_quizzes[0];
+        const data = await request.formData();
+        const quiz_id = data.get('slug')?.toString();
+        if (current_quiz) {
+            await makeCurrentQuiz(current_quiz.slug, 0);
+        }
+        if (quiz_id) {
+            await makeCurrentQuiz(quiz_id, 1);
+        }
+    },
+    unmake_current: async ({request}) => {
+        const data = await request.formData();
+        const quiz_id = data.get('slug')?.toString();
+        if (quiz_id) {
+            await makeCurrentQuiz(quiz_id, 0);
+        }
     }
 }
