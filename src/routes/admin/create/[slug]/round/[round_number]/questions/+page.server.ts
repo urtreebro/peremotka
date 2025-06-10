@@ -46,10 +46,10 @@ export const actions: Actions = {
         if (round_number + 1 <= quiz_length) {
             const exists = getNextRound(slug, round_number + 1);
             if (exists !== 0) {
-                throw redirect(303, `/admin/edit/${slug}/round/${round_number + 1}/questions`);
+                throw redirect(303, `/admin/create/${slug}/round/${round_number + 1}/questions`);
             }
             else {
-                throw redirect(303, `/admin/edit/${slug}/round/${round_number + 1}/new`);
+                throw redirect(303, `/admin/create/${slug}/round/${round_number + 1}/new`);
             }
         }
         else {
@@ -59,7 +59,7 @@ export const actions: Actions = {
 }
 
 export const load = (({params}) => {
-    round = getRound(params.slug, parseInt(params.round_id));
+    round = getRound(params.slug, parseInt(params.round_number));
     round_template = getRoundTemplate(round.round_template_id);
     let map_template: MapTemplate = {id: '', title: '', points: []};
     if (round_template.specials === 'geography') {
@@ -67,7 +67,7 @@ export const load = (({params}) => {
         console.log(map_template);
     }
     slug = params.slug;
-    round_number = parseInt(params.round_id);
+    round_number = parseInt(params.round_number);
     return {
         round_template,
         round,

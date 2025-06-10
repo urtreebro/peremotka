@@ -1,87 +1,173 @@
 <script lang="ts">
     import type {PageData} from './$types';
+    import type {Answer, Template} from "$lib/server/db/types";
+    import {writable} from "svelte/store";
 
     export let data: PageData;
 
     let round = data.round;
-    let questions = data.questions;
-    let answers: string[] = [''];
-    let quiz_id = data.slug;
+    let template: Template = data.template;
+    let answers = [] as Answer[];
+    let blank_id = data.blank_id;
+    let map_template = data.map_template;
+    let placeholders: string[] = template.placeholders.split(';');
+    for (let i = 0; i < template.number_of_questions; i++) {
+        answers.push({blank_id: blank_id, answer_fields: []})
+        for (let j = 0; j < placeholders.length; j++) {
+            answers[i].answer_fields[j] = "";
+        }
+    }
+
+    let imageElement: HTMLImageElement;
+
+    export const numberAssignments = writable({
+            value:
+                Array.from({length: template.number_of_questions}, (_, i) => ({
+                    number: i + 1,
+                    pointId: 0
+                }))
+        }
+    );
+    let draggedNumber: number | null = null;
+
+    function handleDragStart(event: DragEvent, number: number) {
+        draggedNumber = number;
+        if (event.dataTransfer) {
+            event.dataTransfer.setData('text/plain', number.toString());
+        }
+        console.log($numberAssignments.value);
+    }
+
+    function handleDrop(event: DragEvent, pointId: number) {
+        event.preventDefault();
+        if (draggedNumber === null) return;
+
+        $numberAssignments.value = $numberAssignments.value.map(assignment => {
+            if (assignment.number === draggedNumber) {
+                return {...assignment, pointId};
+            }
+            return assignment;
+        });
+
+        draggedNumber = null;
+    }
+
+    function handleDragOver(event: DragEvent) {
+        event.preventDefault();
+    }
+
+    function handleDragEnd() {
+        draggedNumber = null;
+    }
 
 </script>
 
 <div class="container">
-    <!--{#if round.type === 'geography'}-->
-    <!--    <h1 id="geography-title" class="has-text-weight-bold title">География</h1>-->
-    <!--    <form id="geography-form" method="POST">-->
-    <!--        {#each questions as question, idx }-->
-    <!--            <input type="text"-->
-    <!--                   id="question-{idx}"-->
-    <!--                   bind:value={questions[idx]}-->
-    <!--                   placeholder="Введите правильный ответ на вопрос"-->
-    <!--                   required-->
-    <!--            />-->
-    <!--        {/each}-->
-    <!--    </form>-->
-    <!--{/if}-->
-    {#if round.type === 'artist'}
-        <h1 class="has-text-weight-bold title">Исполнитель</h1>
-        <form id="artist-track-form" method="POST">
-            {#each questions as question, idx }
-                <div class="answer-group">
-                    <h1 class="has-text-weight-bold ml-2 mb-3 is-size-4">Вопрос {idx + 1}</h1>
-                    <input class="" type="text" id="artist-{idx}" name="artist-{idx}" placeholder="Исполнитель" required/>
-                </div>
-                <div class="answer-group">
-                    <h1 class="has-text-weight-bold ml-2 mb-3 is-size-4">Вопрос {idx + 1}</h1>
-                    <h1 class="m-2 is-size-5">Исполнитель</h1>
-                    <input class="" type="text" id="artist-{idx}" name="artist-{idx}" required/>
-                </div>
-            {/each}
-            <input type="hidden" name="answers" value={JSON.stringify(answers)}/>
-            <input type="hidden" name="quiz_id" value={quiz_id}/>
-            <input type="hidden" name="round_number" value={round.round_number}/>
-            <input type="hidden" name="round_id" value={round.round_id}/>
-            <input type="hidden" name="round_type" value={round.type}/>
-            <button type="submit" formaction="?/submit">
-                Перейти к следующему раунду
-            </button>
-        </form>
-        {/if}
-    {#if round.type === 'artist-track'}
-        <h1 class="has-text-weight-bold title">Исполнитель - Произведение</h1>
-        <form id="artist-track-form" method="POST">
-            {#each questions as question, idx }
-                <div class="answer-group">
-                    <input class="" type="text" id="artist-{idx}" name="artist-{idx}" placeholder="Исполнитель" required/>
-                    <input type="text" id="track-{idx}" name="track-{idx}" placeholder="Песня" required/>
-                </div>
-            {/each}
-            <input type="hidden" name="answers" value={JSON.stringify(answers)}/>
-            <input type="hidden" name="quiz_id" value={quiz_id}/>
-            <input type="hidden" name="round_number" value={round.round_number}/>
-            <input type="hidden" name="round_id" value={round.round_id}/>
-            <input type="hidden" name="round_type" value={round.type}/>
-            <button type="submit" formaction="?/submit">
-                Перейти к следующему раунду
-            </button>
-        </form>
+    <form class="create-form" method="POST">
+        <h1 class="title">Раунд {round.round_number}</h1>
+        {#each answers as answer, idx}
+            <div class="m-4">
+                <h1>Вопрос {idx + 1}</h1>
+                {#each placeholders as placeholder, idx2}
+                    <div>
+                        <h1>{placeholder}</h1>
+                        <input type="text" id="placeholder" name="placeholder"
+                               bind:value={answers[idx].answer_fields[idx2]}/>
+                    </div>
+                {/each}
+            </div>
+        {/each}
 
-    {/if}
+        {#if template.specials === 'geography'}
+            <div class="numbers_dock">
+                {#each $numberAssignments.value as {number, pointId}}
+                    {#if !pointId}
+                        <div role="img"
+                             class="number_square"
+                             draggable="true"
+                             on:dragstart={(e) => handleDragStart(e, number)}
+                             on:dragend={handleDragEnd}
+                        >
+                            {number}
+                        </div>
+                    {/if}
+                {/each}
+            </div>
+            <div class="image-container">
+                {#each map_template.points as point}
+                    <div role="img" class="point" style="left: {point.x}%; top: {point.y}%"
+                         on:dragover={handleDragOver}
+                         on:drop={(e) => handleDrop(e, point.id)}
+                    >
+                        {#if $numberAssignments.value.find(n => n.pointId === point.id)}
+                            <div role="img"
+                                 class="number_square"
+                                 draggable="true"
+                                 on:dragstart={(e) => handleDragStart(e, $numberAssignments.value.find(n => n.pointId === point.id)?.number) }
+                                 on:dragend={handleDragEnd}
+                            >
+                                {$numberAssignments.value.find(n => n.pointId === point.id)?.number}
+                            </div>
+                        {/if}
+                    </div>
+                {/each}
+                <img bind:this={imageElement}
+                     src="{`/api/template/${map_template.id}`}" alt=""/>
+
+            </div>
+        {/if}
+
+        <input type="hidden" id="answers" name="answers" value="{JSON.stringify(answers)}"/>
+        <input type="hidden" id="numbers" name="numbers" value="{JSON.stringify($numberAssignments.value)}" />
+        <button
+                type="submit"
+                formaction="?/submit">
+            Сохранить
+        </button>
+    </form>
+
 
 </div>
 
 <style>
-    .answer-group {
-        margin-bottom: 1rem;
+    .image-container {
+        position: relative;
+        display: inline-block;
     }
 
-    input[type="text"] {
-        width: 30%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 1rem;
-        margin: 0.75rem;
+    .image-container img {
+        max-width: 600px;
+        height: auto;
+    }
+
+    .numbers_dock {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .number_square {
+        width: 32px;
+        height: 32px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: #3999f8;
+        color: white;
+        margin: 5px;
+        cursor: move;
+        z-index: 1000;
+    }
+
+    .point {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background: black;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
     }
 </style>

@@ -8,7 +8,7 @@ let round_number: number;
 let quiz_id: string;
 
 export const load = (({params}) => {
-    round_number = parseInt(params.round_id);
+    round_number = parseInt(params.round_number);
     quiz_id = params.slug;
 }) satisfies PageServerLoad
 
@@ -47,7 +47,7 @@ export const actions: Actions = {
                 await createRoundTemplate(slug, title, number_of_questions, number_of_fields, placeholders_string, null, null);
             }
             await createRound(round_number, quiz_id, slug);
-            redirect(303, `/admin/edit/${quiz_id}/round/${round_number}/questions`)
+            redirect(303, `/admin/create/${quiz_id}/round/${round_number}/questions`)
         }
     }
 

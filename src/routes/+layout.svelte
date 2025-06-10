@@ -3,11 +3,6 @@
     import {page} from '$app/state';
     import type {LayoutServerData} from './$types';
     import {onNavigate} from '$app/navigation';
-    import { onMount } from "svelte";
-
-    onMount(async (): Promise<void> => {}
-
-    )
 
     onNavigate((navigation) => {
         if (!(document as any).startViewTransition) return;
@@ -35,6 +30,12 @@
             <div class="navbar-brand pr-4">
                 <img src={logo} alt="" width="300" class="mt-2"/>
             </div>
+            {#if page.url.pathname === '/admin' || page.url.pathname === '/admin/reviewer'}
+                <div class="navbar-item">
+                    <a class="navbar-item" href="/admin">Библиотека</a>
+                    <a class="navbar-item" href="/admin/reviewer">Сданные бланки</a>
+                </div>
+            {/if}
             <div class="navbar-end">
                 {#if data?.username}
                     <div
