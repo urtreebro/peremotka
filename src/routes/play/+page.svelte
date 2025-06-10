@@ -9,7 +9,7 @@
 
 <div class="container" style="max-width: 800px">
 	<h1 class="has-text-weight-bold title">{quiz.title}</h1>
-	<button class="button mt-4 mr-3" on:click={() => goto(`/play/quiz/${quiz.slug}/round/1/questions`)}>
+	<button class="button mt-4 mr-3" on:click={() => goto(`/play/quiz/${quiz.id}/round/1/questions`)}>
 		Начать игру
 	</button>
 </div>

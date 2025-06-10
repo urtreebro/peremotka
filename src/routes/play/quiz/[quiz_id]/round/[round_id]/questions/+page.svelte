@@ -2,6 +2,7 @@
     import type {PageData} from './$types';
     import type {Answer, Template} from "$lib/server/db/types";
     import {writable} from "svelte/store";
+    import {persist} from "svelte-use-persist";
 
     export let data: PageData;
 
@@ -12,9 +13,9 @@
     let map_template = data.map_template;
     let placeholders: string[] = template.placeholders.split(';');
     for (let i = 0; i < template.number_of_questions; i++) {
-        answers.push({blank_id: blank_id, answer_fields: []})
+        answers.push({id: -1, type:'',blank_id: blank_id, answer_fields: []})
         for (let j = 0; j < placeholders.length; j++) {
-            answers[i].answer_fields[j] = "";
+            answers[i].answer_fields[j] = {answer: '', max_score: 0};
         }
     }
 
@@ -63,16 +64,16 @@
 </script>
 
 <div class="container">
-    <form class="create-form" method="POST">
-        <h1 class="title">Раунд {round.round_number}</h1>
+    <form class="create-form" method="POST" use:persist={{key: `my-form-play-${round.quiz_id}-${round.round_number}`}}>
+        <h1 class="title mt-5">Раунд {round.round_number}</h1>
         {#each answers as answer, idx}
-            <div class="m-4">
-                <h1>Вопрос {idx + 1}</h1>
+            <div class="questions m-4">
+                <h1 class="has-text-weight-bold mb-4 mt-4">Вопрос {idx + 1}</h1>
                 {#each placeholders as placeholder, idx2}
-                    <div>
+                    <div class="field">
                         <h1>{placeholder}</h1>
-                        <input type="text" id="placeholder" name="placeholder"
-                               bind:value={answers[idx].answer_fields[idx2]}/>
+                        <input type="text" id="placeholder" name="placeholder{idx}-{idx2}"
+                               bind:value={answers[idx].answer_fields[idx2].answer}/>
                     </div>
                 {/each}
             </div>
@@ -169,5 +170,29 @@
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 1000;
+    }
+
+    button {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        background-color: orangered;
+        color: white;
+        cursor: pointer;
+        margin: 0.5rem auto 4rem;
+    }
+    .questions{
+        width: 25%;
+        margin: 0.5rem auto;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: space-between;
+        margin: 1rem auto;
+        vertical-align: center;
     }
 </style>

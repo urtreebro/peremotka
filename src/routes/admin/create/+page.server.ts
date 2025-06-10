@@ -1,7 +1,7 @@
 import {type Actions, redirect} from "@sveltejs/kit";
 import {createQuiz, createRound, getRoundTemplates} from "$lib/server/db";
 import {createRequire} from 'module';
-import type {PageServerLoad} from "../../../../.svelte-kit/types/src/routes/admin/$types";
+import type {PageServerLoad} from "./$types";
 
 const require = createRequire(import.meta.url);
 
@@ -33,10 +33,10 @@ export const actions: Actions = {
                 }
             }
             if (rounds_parsed[0] != 'null') {
-                throw redirect(303, `/admin/edit/${slug}/round/1/questions`);
+                throw redirect(303, `/admin/create/${slug}/round/1/questions`);
             }
             else {
-                throw redirect(303, `/admin/edit/${slug}/round/1/new`);
+                throw redirect(303, `/admin/create/${slug}/round/1/new`);
             }
         }
     }

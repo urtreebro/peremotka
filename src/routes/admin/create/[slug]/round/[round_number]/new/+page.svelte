@@ -2,6 +2,13 @@
     import {writable} from "svelte/store";
     import {shortcut, type ShortcutEventDetail} from '@svelte-put/shortcut';
     import type {MagneticPoint} from "$lib/server/db/types";
+    import {persist} from "svelte-use-persist";
+    import type {PageData} from "./$types"
+
+
+    export let data: PageData;
+
+    const quiz_id = data.quiz_id;
 
     let number_of_questions = 7;
     let number_of_fields = 1;
@@ -92,35 +99,43 @@
 
 }} onshortcut={useShortcut}/>
 
-<div>
-    <form method="POST" enctype="multipart/form-data">
-        <h1>Название шаблона</h1>
-        <input type="text" id="title" name="title" value={title}/>
-        <h1>Количество вопросов:</h1>
-        <input
-                id="number-of-questions"
-                type="number"
-                class="m-4 is-centered"
-                bind:value={number_of_questions}
-                on:input={() => handleChangeQuestions()}
-                name='number_of_questions'
-                min="{minQuestions}"
-                max="{maxQuestions}"
-        >
-        <h1>Количество полей</h1>
-        <input
-                id="number-of-fields"
-                type="number"
-                class="m-4 is-centered"
-                bind:value={number_of_fields}
-                on:input={() => handleChangeFields()}
-                name='number_of_fields'
-                min="{minFields}"
-                max="{maxFields}"
-        >
+<div class="container">
+    <form method="POST" enctype="multipart/form-data" use:persist={{key: `new-${quiz_id}`}}>
+        <div class="m-4">
+            <h1>Название шаблона</h1>
+            <input type="text" id="title" name="title" value={title}/>
+        </div>
+        <div class="m-4">
+            <h1>Количество вопросов:</h1>
+            <input
+                    id="number-of-questions"
+                    type="number"
+                    class="m-4 is-centered"
+                    bind:value={number_of_questions}
+                    on:input={() => handleChangeQuestions()}
+                    name='number_of_questions'
+                    min="{minQuestions}"
+                    max="{maxQuestions}"
+            >
+        </div>
+        <div class="m-4">
+            <h1>Количество полей</h1>
+            <input
+                    id="number-of-fields"
+                    type="number"
+                    class="m-4 is-centered"
+                    bind:value={number_of_fields}
+                    on:input={() => handleChangeFields()}
+                    name='number_of_fields'
+                    min="{minFields}"
+                    max="{maxFields}"
+            >
+        </div>
+
         <div>
-            {#each placeholders as placeholder, idx}
-                <input type="text" id="placeholder" name="placeholder" bind:value={placeholders[idx]}
+            <h1>Что надо ввести в поле?</h1>
+            {#each placeholders as _, idx}
+                <input class="mr-5" type="text" id="placeholder" name="placeholder" placeholder="Название" bind:value={placeholders[idx]}
                        on:input={() => handleChange()}/>
             {/each}
         </div>
@@ -129,56 +144,70 @@
         <input type="hidden" name="points" value="{JSON.stringify($points.value)}"/>
         <input type="hidden" name="selectedImage" value="{selectedImage}"/>
         <input type="hidden" name="mapTitle" value="{mapTitle}"/>
-        <input type="checkbox" id="specials" name="specials" bind:checked="{isSpecialsChecked}">
-        <label for="specials">Специальные механики</label>
-        {#if isSpecialsChecked}
+        <div class="m-4">
+            <input type="checkbox" id="specials" name="specials" bind:checked="{isSpecialsChecked}">
+            <label for="specials">Специальные механики</label>
+            {#if isSpecialsChecked}
 
-            <fieldset>
-                <input type="radio" id="geography" name="special" value="geography" bind:group={selected}/>
-                <label for="geography">География</label>
-            </fieldset>
-            {#if selected === 'geography'}
-                <input type="text" id="mapTitle" name="mapTitle" bind:value='{mapTitle}' placeholder="Название карты"/>
-                <input
-                        type="file"
-                        accept="image/*"
-                        name="mapImage"
-                        on:change={handleFileInput}
+                <fieldset class="m-4 is-centered">
+                    <input type="radio" id="geography" name="special" value="geography" bind:group={selected}/>
+                    <label for="geography">География</label>
+                </fieldset>
+                {#if selected === 'geography'}
+                    <div class="m-4 is-centered">
+                        <div>
+                            <input class="m-4" type="text" id="mapTitle" name="mapTitle" bind:value='{mapTitle}' placeholder="Название карты"/>
+                            <input
+                                    type="file"
+                                    accept="image/*"
+                                    name="mapImage"
+                                    on:change={handleFileInput}
 
-                />
+                            />
+                        </div>
 
-                {#if selectedImage}
-                    <div class="image-container">
-                        {#each $points.value as point}
-                            <div class="point" style="left: {point.x}%; top: {point.y}%"
-                            ></div>
-                        {/each}
-                        <img
-                                bind:this={imageElement}
-                                src={selectedImage}
-                                alt="Selected"
-                                draggable="false"
-                                on:click={handleClick}
 
-                        />
+                        {#if selectedImage}
+                            <div class="image-container">
+                                {#each $points.value as point}
+                                    <div class="point" style="left: {point.x}%; top: {point.y}%"
+                                    ></div>
+                                {/each}
+                                <img
+                                        bind:this={imageElement}
+                                        src={selectedImage}
+                                        alt="Selected"
+                                        draggable="false"
+                                        on:click={handleClick}
 
+                                />
+
+                            </div>
+                        {/if}
                     </div>
+
                 {/if}
             {/if}
-        {/if}
-        <div>
+        </div>
+
+
+
             <button
                     id="submit"
                     type="submit"
                     formaction="?/save">
                 Сохранить шаблон
             </button>
-        </div>
 
     </form>
 </div>
 
 <style>
+
+    .container {
+        width: 100%;
+        margin: auto;
+    }
     .image-container {
         position: relative;
         display: inline-block;
@@ -197,6 +226,17 @@
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 1000;
+    }
+
+    button {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        background-color: orangered;
+        color: white;
+        cursor: pointer;
+        margin: 0.5rem auto;
     }
 
 </style>

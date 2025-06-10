@@ -22,6 +22,9 @@ export const handle = (async ({event, resolve}) => {
             if (event.locals.role === 'player' && event.route.id !== null && event.route.id === '/') {
                 redirect(302, '/play');
             }
+            if (event.locals.completed && event.route.id !== null && event.route.id.startsWith('/play/quiz') ) {
+                redirect(302, '/play/results');
+            }
         } else {
             cookies.delete('sessionId', {path: '/'});
             event.locals.username = undefined;

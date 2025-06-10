@@ -23,7 +23,7 @@ export const actions: Actions = {
         for (const question of questions) {
             let question_id = <number>await createQuestion(question.round_id, '');
             for (const field of question.question_fields) {
-                await createQuestionField(question_id, field);
+                await createQuestionField(question_id, field.correct_answer);
             }
         }
 

@@ -1,6 +1,7 @@
 <script lang="ts">
     import type {PageData} from './$types';
     import type {Question, Template} from "$lib/server/db/types";
+    import {persist} from "svelte-use-persist";
     import {writable} from "svelte/store";
 
     export let data: PageData;
@@ -8,14 +9,8 @@
     let round = data.round;
     let template: Template = data.round_template;
     let placeholders: string[] = template.placeholders.split(';');
-    let questions = [] as Question[];
+    let questions = data.questions;
     let map_template = data.map_template;
-    for (let i = 0; i < template.number_of_questions; i++) {
-        questions.push({round_id: round.round_id, question_fields: []})
-        for (let j = 0; j < placeholders.length; j++) {
-            questions[i].question_fields[j] = "";
-        }
-    }
 
     let imageElement: HTMLImageElement;
 
@@ -63,19 +58,23 @@
 </script>
 
 <div class="container">
-    <form class="create-form" method="POST">
-        <h1 class="title">Раунд {round.round_number}</h1>
+    <form class="create-form" method="POST" use:persist={{
+        key: `my-form-edit-${round.quiz_id}-${round.round_number}`
+    }}>
+        <h1 class="title mt-5">Раунд {round.round_number}</h1>
         {#each questions as question, idx}
-            <div class="questions m-4">
-                <h1>Вопрос {idx + 1}</h1>
-                {#each placeholders as placeholder, idx2}
-                    <div>
-                        <h1>{placeholder}</h1>
-                        <input type="text" id="placeholder" name="placeholder"
-                               bind:value={questions[idx].question_fields[idx2]}/>
-                    </div>
-                {/each}
-            </div>
+            {#if question.type === ''}
+                <div class="questions m-4">
+                    <h1 class="has-text-weight-bold mb-5 mt-5">Вопрос {idx + 1}</h1>
+                    {#each placeholders as placeholder, idx2}
+                        <div class="field">
+                            <h1>{placeholder}</h1>
+                            <input type="text" id="placeholder" name="placeholder{idx}-{idx2}"
+                                   bind:value={questions[idx].question_fields[idx2].correct_answer}/>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
         {/each}
         {#if template.specials === 'geography'}
             <div class="numbers_dock">
@@ -117,12 +116,14 @@
         {/if}
 
         <input type="hidden" id="questions" name="questions" value="{JSON.stringify(questions)}"/>
-        <input type="hidden" id="numbers" name="numbers" value="{JSON.stringify($numberAssignments.value)}" />
-        <button
-                type="submit"
-                formaction="?/submit">
-            Сохранить
-        </button>
+        <input type="hidden" id="numbers" name="numbers" value="{JSON.stringify($numberAssignments.value)}"/>
+        <div>
+            <button
+                    type="submit"
+                    formaction="?/submit">
+                Сохранить
+            </button>
+        </div>
     </form>
 </div>
 
@@ -166,5 +167,30 @@
         border-radius: 50%;
         transform: translate(-50%, -50%);
         z-index: 1000;
+    }
+
+    button {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        background-color: orangered;
+        color: white;
+        cursor: pointer;
+        margin: 1.5rem 3rem 4rem;
+    }
+
+    .questions {
+        width: 24%;
+        margin: 0.5rem auto;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: space-between;
+        margin: 1rem auto;
+        vertical-align: center;
     }
 </style>

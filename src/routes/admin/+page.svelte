@@ -5,7 +5,6 @@
     export let data: PageData;
 
     let quizzes = data.quizzes;
-
     function createNewQuiz() {
         goto('/admin/create');
     }
@@ -24,7 +23,7 @@
                     <form method="POST">
                         <div class="flex-box">
                             <h3 class="title has-text-weight-bold m-3">{quiz.title}</h3>
-                            <input type="hidden" value={quiz.slug} name="slug"/>
+                            <input type="hidden" value={quiz.id} name="slug"/>
                             <div class="flex-box-2">
                                 {#if !quiz.is_current}
                                     <button class="flex-box-2 m-3 make_current_btn" formaction="?/make_current">Сделать текущим</button>

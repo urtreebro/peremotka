@@ -20,15 +20,14 @@ export const actions: Actions = {
     edit: async ({request}) => {
         const data = await request.formData();
         const quiz_id = data.get('slug')?.toString();
-        redirect(303, `/admin/edit/${quiz_id}/round/1/questions`);
+        redirect(303, `/admin/edit/${quiz_id}`);
     },
     make_current: async ({request}) => {
-        const current_quizzes = getCurrentQuiz();
-        const current_quiz = current_quizzes[0];
+        const current_quiz = getCurrentQuiz();
         const data = await request.formData();
         const quiz_id = data.get('slug')?.toString();
         if (current_quiz) {
-            await makeCurrentQuiz(current_quiz.slug, 0);
+            await makeCurrentQuiz(current_quiz.id, 0);
         }
         if (quiz_id) {
             await makeCurrentQuiz(quiz_id, 1);

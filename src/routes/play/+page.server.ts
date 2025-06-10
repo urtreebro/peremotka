@@ -4,6 +4,6 @@ import type {PageServerLoad} from "./$types";
 export const load = (() => {
     const quiz = getCurrentQuiz();
     return {
-        quiz: quiz[0],
+        quiz: quiz,
     };
 }) satisfies PageServerLoad;

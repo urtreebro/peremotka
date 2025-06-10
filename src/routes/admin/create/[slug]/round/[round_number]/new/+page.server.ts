@@ -10,6 +10,9 @@ let quiz_id: string;
 export const load = (({params}) => {
     round_number = parseInt(params.round_number);
     quiz_id = params.slug;
+    return{
+        quiz_id,
+    }
 }) satisfies PageServerLoad
 
 export const actions: Actions = {

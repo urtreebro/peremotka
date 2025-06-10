@@ -9,9 +9,10 @@ export type SessionInfoCache = SessionInfo & {
 
 export type Quiz = {
     title: string;
-    slug: string;
+    id: string;
     is_current: boolean;
     rounds: Round[];
+    length: number;
 }
 
 export type Round = {
@@ -23,9 +24,11 @@ export type Round = {
 }
 
 export type Blank = {
+    id: number;
     round_id: number;
     quiz_id: string;
     player_name: string;
+    state: string;
 }
 
 export type Template = {
@@ -39,13 +42,27 @@ export type Template = {
 }
 
 export type Question = {
-    question_fields: string[];
+    id: number;
+    question_fields: QuestionField[];
     round_id: number;
+    type: string;
+}
+
+export type QuestionField = {
+    id: number;
+    correct_answer: string;
+}
+
+export type AnswerField = {
+    answer: string;
+    max_score: number;
 }
 
 export type Answer = {
-    answer_fields: string[];
+    id: number;
+    answer_fields: AnswerField[];
     blank_id: number;
+    type: string;
 }
 
 export type MagneticPoint = {
@@ -65,4 +82,9 @@ export type MapTemplate = {
     id: string;
     title: string;
     points: MagneticPoint[];
+}
+
+export type Player = {
+    name: string;
+    score: number;
 }

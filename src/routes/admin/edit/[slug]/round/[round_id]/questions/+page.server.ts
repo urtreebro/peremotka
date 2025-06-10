@@ -1,8 +1,8 @@
 import {
     createQuestion,
-    createQuestionField, getMapTemplate, getNextRound, getQuizLength,
+    createQuestionField, getMapTemplate, getQuestions, getQuizLength,
     getRound,
-    getRoundTemplate,
+    getRoundTemplate, updateQuestionField,
 } from '$lib/server/db'
 import type {PageServerLoad} from './$types';
 import {type Actions, redirect} from "@sveltejs/kit";
@@ -13,17 +13,18 @@ let slug = '';
 let round_number: number;
 let round_template: Template;
 let round: Round;
+let questions: Question[];
 export const actions: Actions = {
     submit: async ({request}) => {
         const data = await request.formData();
         const questions_str = data.getAll('questions').toString();
-        const questions: Question[] = JSON.parse(questions_str);
+        const new_questions: Question[] = JSON.parse(questions_str);
 
-
-        for (const question of questions) {
-            let question_id = <number>await createQuestion(question.round_id, '');
-            for (const field of question.question_fields) {
-                await createQuestionField(question_id, field);
+        for (let i = 0; i < questions.length; ++i) {
+            for (let j = 0; j < questions[i].question_fields.length; ++j) {
+                if (questions[i].type == '') {
+                    await updateQuestionField(questions[i].question_fields[j].id, new_questions[i].question_fields[j].correct_answer)
+                }
             }
         }
 
@@ -36,35 +37,33 @@ export const actions: Actions = {
             }
 
             const numbers_parsed = JSON.parse(numbers) as NumberAssignment[];
-            let question_id = <number>await createQuestion(round.round_id, 'geography');
             for (const num of numbers_parsed) {
-                await createQuestionField(question_id, `${num.number},${num.pointId}`);
+                for (let i = 0; i < questions.length; ++i) {
+                    for (let j = 0; j < questions[i].question_fields.length; ++j) {
+                        if (questions[i].type === 'geography') {
+                            const ans = questions[i].question_fields[j].correct_answer.split(',')[0];
+                            if (parseInt(ans) === num.number) {
+                                await updateQuestionField(questions[i].question_fields[j].id, `${num.number},${num.pointId}`);
+                            }
+                        }
+                    }
+                }
             }
         }
         const quiz_length = getQuizLength(slug);
         console.log(quiz_length);
-        if (round_number + 1 <= quiz_length) {
-            const exists = getNextRound(slug, round_number + 1);
-            if (exists !== 0) {
-                throw redirect(303, `/admin/edit/${slug}/round/${round_number + 1}/questions`);
-            }
-            else {
-                throw redirect(303, `/admin/edit/${slug}/round/${round_number + 1}/new`);
-            }
-        }
-        else {
-            redirect(303, '/admin');
-        }
+        redirect(303, `/admin/edit/${slug}`)
     }
 }
 
 export const load = (({params}) => {
     round = getRound(params.slug, parseInt(params.round_id));
     round_template = getRoundTemplate(round.round_template_id);
+    questions = getQuestions(round.round_id);
+
     let map_template: MapTemplate = {id: '', title: '', points: []};
     if (round_template.specials === 'geography') {
         map_template = getMapTemplate(round_template.content);
-        console.log(map_template);
     }
     slug = params.slug;
     round_number = parseInt(params.round_id);
@@ -73,5 +72,6 @@ export const load = (({params}) => {
         round,
         slug,
         map_template,
+        questions,
     };
 }) satisfies PageServerLoad;

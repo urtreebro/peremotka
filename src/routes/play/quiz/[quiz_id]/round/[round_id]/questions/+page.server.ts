@@ -17,15 +17,15 @@ let blank_id: number;
 let template: Template;
 
 export const actions: Actions = {
-    submit: async ({request}) => {
+    submit: async ({request, locals}) => {
         const data = await request.formData();
         const answers_str = data.getAll('answers').toString();
         const answers: Answer[] = JSON.parse(answers_str);
-        await changeBlankState(blank_id, "unchecked");
+        await changeBlankState(blank_id, "Не проверен");
         for (const answer of answers) {
             let answer_id = <number>await createAnswer(answer.blank_id, '');
             for (const field of answer.answer_fields) {
-                await createAnswerField(answer_id, field, 1);
+                await createAnswerField(answer_id, field.answer, 1);
             }
         }
 
@@ -48,7 +48,8 @@ export const actions: Actions = {
             throw redirect(303, `/play/quiz/${slug}/round/${round_number + 1}/questions`);
         }
         else {
-            redirect(303, '/play');
+            locals.completed = true;
+            redirect(303, '/play/results');
         }
     }
 }
@@ -58,7 +59,7 @@ export const load = (async ({params, locals: {username}}) => {
     slug = params.quiz_id;
     round_number = parseInt(params.round_id);
     // @ts-ignore
-    blank_id = <number>await createBlank(slug, round.round_id, username, "not completed");
+    blank_id = <number>await createBlank(slug, round.round_id, username, "Не сдан");
     template = getRoundTemplate(round.round_template_id);
     let map_template: MapTemplate = {id: '', title: '', points: []};
     if (template.specials === 'geography') {

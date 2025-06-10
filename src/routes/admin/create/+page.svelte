@@ -1,5 +1,6 @@
 <script lang="ts">
     import type {PageData} from "./$types";
+    import {persist} from "svelte-use-persist";
     import type {Template} from "$lib/server/db/types";
 
     export let data: PageData;
@@ -29,7 +30,7 @@
 
 <div class="container mt-4 has-text-centered">
     <h1 class="has-text-weight-bold title has-text-centered m-4">Новый квиз</h1>
-    <form class="create-form" method="POST">
+    <form class="create-form" method="POST" use:persist={{key: `create`}}>
         <input
                 id="title"
                 type="text"
@@ -52,14 +53,16 @@
             >
         </div>
         <div>
-            {#each roundTypes as type, index}
-                <h1>Раунд {index + 1}</h1>
-                <select id="list{index}" bind:value={selectedRounds[index]}>
-                    <option value=null>Новый шаблон</option>
-                    {#each roundTemplates as template}
-                        <option value="{template.id}">{template.id}</option>
-                    {/each}
-                </select>
+            {#each roundTypes as _, index}
+                <div class="flex-box">
+                    <h2>Раунд {index + 1}</h2>
+                    <select id="list{index}" bind:value={selectedRounds[index]}>
+                        <option value=null>Новый шаблон</option>
+                        {#each roundTemplates as template}
+                            <option value="{template.id}">{template.title}</option>
+                        {/each}
+                    </select>
+                </div>
             {/each}
         </div>
         <input type="hidden" id="rounds" name="rounds" value="{JSON.stringify(selectedRounds)}"/>
@@ -92,30 +95,26 @@
         gap: 2rem;
     }
 
-    /*.round-types {*/
-    /*    display: grid;*/
-    /*    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));*/
-    /*    gap: 1rem;*/
-    /*    margin-top: 1rem;*/
-    /*}*/
+   .flex-box {
+       display: flex;
+       flex-direction: row;
+   }
+   select{
+       margin: 1rem 2rem;
+   }
+   h2{
+       margin: 1rem ;
+   }
 
-    /*.rounds-section {*/
-    /*    border: 1px solid #ddd;*/
-    /*    padding: 1rem;*/
-    /*    border-radius: 4px;*/
-    /*}*/
-
-    /*.round-button {*/
-    /*    padding: 1rem;*/
-    /*    border: 2px solid orangered;*/
-    /*    border-radius: 4px;*/
-    /*    background: white;*/
-    /*    cursor: pointer;*/
-    /*    transition: all 0.2s;*/
-    /*}*/
-
-    /*.round-button.selected {*/
-    /*    background: orangered;*/
-    /*    color: white;*/
-    /*}*/
+    button {
+        width: 300px;
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 0.5rem;
+        background-color: orangered;
+        color: white;
+        cursor: pointer;
+        margin: 1rem auto 4rem;
+    }
 </style>

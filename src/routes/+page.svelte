@@ -4,8 +4,7 @@
 
     export let data: PageData;
     export let form;
-    let current_quizzes = data.current_quiz;
-    let current_quiz = current_quizzes[0];
+    let current_quiz = data.current_quiz;
 </script>
 
 <div class="container" style="max-width: 50ch;">
@@ -19,7 +18,7 @@
             <div>
                 <button class="button mt-4 mr-3 is-fullwidth" type="submit" formaction="?/register">Войти</button>
             </div>
-            <input type="hidden" name="current_quiz" value={current_quiz.slug}/>
+            <input type="hidden" name="current_quiz" value={current_quiz.id}/>
         </form>
     {:else }
         <h1 class="has-text-weight-bold title">Ждем следующую игру</h1>
