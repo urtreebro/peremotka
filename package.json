@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview --host",
 		"prepare": "svelte-kit sync || echo ''",
+		"start": "node build",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
@@ -19,10 +20,10 @@
 		"@types/better-sqlite3": "^7.6.12",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
-		"typescript": "^5.0.0",
-		"vite": "^6.3.5"
+		"typescript": "^5.0.0"
 	},
 	"dependencies": {
+		"vite": "^6.3.5",
 		"@svelte-put/shortcut": "^4.1.0",
 		"bcrypt": "^5.1.1",
 		"better-sqlite3": "^11.9.1",
