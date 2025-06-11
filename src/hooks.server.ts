@@ -6,16 +6,21 @@ const csrf = (
     event: RequestEvent,
     allowedOrigins: string[],
 ) => {
-    const {request, url} = event;
+    const {request} = event;
 
-    const forbidden =
+    let forbidden =
         isFormContentType(request) &&
         (request.method === "POST" ||
             request.method === "PUT" ||
             request.method === "PATCH" ||
             request.method === "DELETE") &&
         !allowedOrigins.includes(request.headers.get("origin") || "");
-
+    console.log(request.headers.get("origin"), 888, forbidden);
+    for (const og in allowedOrigins) {
+        if (request.headers.get("origin") !== null && request.headers.get("origin")!.startsWith(og)) {
+            forbidden = false;
+        }
+    }
     if (forbidden) {
         error(403, `Cross-site ${request.method} form submissions are forbidden`);
     }
