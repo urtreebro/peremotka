@@ -2,6 +2,7 @@
     import type {PageData} from "./$types"
     import correct_image from '$lib/correct.png'
     import wrong_image from '$lib/wrong.png'
+    import {checkStringSimilarity} from "$lib";
 
     export let data: PageData;
 
@@ -18,19 +19,18 @@
         }
     }
 
-    function check(first: string, second: string) {
-        if (first === second) return 1;
-        return -1;
+    async function check(first: string, second: string) {
+        return await checkStringSimilarity(first, second);
     }
 
-    function checkAnswers() {
+    async function checkAnswers() {
         for (let i = 0; i < correct_answers.length; i++) {
             for (let j = 0; j < correct_answers[i].question_fields.length; j++) {
                 const result = check(correct_answers[i].question_fields[j].correct_answer, player_answers[i].answer_fields[j].answer);
-                if (result == 1) {
+                if (await result) {
                     markAsCorrect(i, j);
                 }
-                else if (result == -1) {
+                else {
                     markAsIncorrect(i, j);
                 }
             }
