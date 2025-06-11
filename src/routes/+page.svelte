@@ -5,7 +5,6 @@
     export let data: PageData;
     export let form;
     let current_quiz = data.current_quiz;
-    console.log(window.location.href);
 </script>
 
 <div class="container" style="max-width: 50ch;">
