@@ -1,8 +1,43 @@
 import {getSession} from '$lib/server/sessionStore';
-import {type Handle, redirect} from '@sveltejs/kit';
+import {error, type Handle, redirect, type RequestEvent} from '@sveltejs/kit';
+import { allowedOrigins } from "$lib/config";
+
+const csrf = (
+    event: RequestEvent,
+    allowedOrigins: string[],
+) => {
+    const {request, url} = event;
+
+    const forbidden =
+        isFormContentType(request) &&
+        (request.method === "POST" ||
+            request.method === "PUT" ||
+            request.method === "PATCH" ||
+            request.method === "DELETE") &&
+        !allowedOrigins.includes(request.headers.get("origin") || "");
+
+    if (forbidden) {
+        error(403, `Cross-site ${request.method} form submissions are forbidden`);
+    }
+};
+function isContentType(request: Request, ...types: string[]) {
+    const type = request.headers.get("content-type")?.split(";", 1)[0].trim() ?? "";
+    return types.includes(type.toLowerCase());
+}
+function isFormContentType(request: Request) {
+    // These content types must be protected against CSRF
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/enctype
+    return isContentType(
+        request,
+        "application/x-www-form-urlencoded",
+        "multipart/form-data",
+        "text/plain",
+    );
+}
 
 export const handle = (async ({event, resolve}) => {
     const {cookies} = event;
+    csrf(event, allowedOrigins);
     const sessionId = cookies.get('sessionId');
     if (sessionId) {
         const session = getSession(sessionId);
@@ -22,20 +57,22 @@ export const handle = (async ({event, resolve}) => {
             if (event.locals.role === 'player' && event.route.id !== null && event.route.id === '/') {
                 redirect(302, '/play');
             }
-            if (event.locals.completed && event.route.id !== null && event.route.id.startsWith('/play/quiz') ) {
+            if (event.locals.completed && event.route.id !== null && event.route.id.startsWith('/play/quiz')) {
                 redirect(302, '/play/results');
             }
-        } else {
+        }
+        else {
             cookies.delete('sessionId', {path: '/'});
             event.locals.username = undefined;
             event.locals.role = undefined;
 
         }
-    } else {
+    }
+    else {
         if (event.route.id !== null && event.route.id.startsWith('/play')) {
             redirect(302, '/')
         }
-        else if (event.route.id !== null && event.route.id.startsWith('/admin')){
+        else if (event.route.id !== null && event.route.id.startsWith('/admin')) {
             redirect(302, '/login')
         }
     }
