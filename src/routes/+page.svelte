@@ -7,16 +7,17 @@
     let current_quiz = data.current_quiz;
 </script>
 
+
 <div class="container" style="max-width: 50ch;">
     {#if current_quiz}
         <h1 class="has-text-weight-bold title m-6 is-center">Текущая игра: {current_quiz.title}</h1>
         <form method="POST" action="?/register">
-            <input class="input my-2" type="text" placeholder="Название команды" name="username"/>
+            <input class="input m-2" type="text" placeholder="Название команды" name="username"/>
             {#if form?.errorMessage}
                 <p class="has-text-danger">{form.errorMessage}</p>
             {/if}
             <div>
-                <button class="button mt-4 mr-3 is-fullwidth" type="submit" formaction="?/register">Войти</button>
+                <button class="button my-4 mx-2" type="submit" formaction="?/register">Войти</button>
             </div>
             <input type="hidden" name="current_quiz" value={current_quiz.id}/>
         </form>
@@ -26,6 +27,7 @@
 
 </div>
 
+
 <style>
     .container {
         display: flex;
@@ -33,6 +35,7 @@
         justify-content: center;
         height: 70vh;
         text-align: center;
+        background: white;
     }
 
     button {
@@ -42,11 +45,14 @@
         background: orangered;
         color: white;
         cursor: pointer;
+        width: 90%;
+        vertical-align: center;
     }
 
     input {
         padding: 0.5rem;
         font-size: 1.1rem;
         vertical-align: center;
+        width: 90%;
     }
 </style>

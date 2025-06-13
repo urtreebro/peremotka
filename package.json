@@ -15,6 +15,7 @@
 	"devDependencies": {
 		"@types/bcrypt": "^5.0.2",
 		"@types/better-sqlite3": "^7.6.12",
+		"@types/fast-levenshtein": "^0.0.4",
 		"@types/langdetect": "^0.2.2",
 		"@types/string-similarity": "^4.0.2",
 		"svelte": "^5.0.0",
@@ -32,6 +33,7 @@
 		"bulma": "^1.0.3",
 		"cld": "^2.10.1",
 		"dotenv": "^16.5.0",
+		"fast-levenshtein": "^3.0.0",
 		"franc": "^6.2.0",
 		"langdetect": "^0.2.1",
 		"metaphone": "^2.0.1",

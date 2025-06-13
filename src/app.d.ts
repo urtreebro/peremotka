@@ -6,7 +6,6 @@ declare global {
 		interface Locals {
 			username?: string;
 			role?: string;
-			completed?: boolean;
 		}
 		// interface PageData {}
 		// interface PageState {}

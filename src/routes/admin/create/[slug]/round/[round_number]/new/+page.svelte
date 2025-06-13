@@ -4,10 +4,10 @@
     import type {MagneticPoint} from "$lib/server/db/types";
     import {persist} from "svelte-use-persist";
     import type {PageData} from "./$types"
-
+     /** @type {import('./$types').ActionData} */
 
     export let data: PageData;
-
+    export let form;
     const quiz_id = data.quiz_id;
 
     let number_of_questions = 7;
@@ -104,6 +104,9 @@
         <div class="m-4">
             <h1>Название шаблона</h1>
             <input type="text" id="title" name="title" value={title}/>
+            {#if form?.errorNoTemplate}
+                <p class="has-text-danger">{form.errorNoTemplate}</p>
+            {/if}
         </div>
         <div class="m-4">
             <h1>Количество вопросов:</h1>
@@ -138,6 +141,9 @@
                 <input class="mr-5" type="text" id="placeholder" name="placeholder" placeholder="Название" bind:value={placeholders[idx]}
                        on:input={() => handleChange()}/>
             {/each}
+            {#if form?.errorNoPlaceholder}
+                <p class="has-text-danger">{form.errorNoPlaceholder}</p>
+            {/if}
         </div>
         <input type="hidden" id="placeholders" name="placeholders" value="{JSON.stringify(placeholders)}"/>
         <input type="hidden" name="selected" id="selected" value="{selected}"/>
@@ -164,6 +170,9 @@
                                     on:change={handleFileInput}
 
                             />
+                            {#if form?.errorMapImage}
+                                <p class="has-text-danger">{form.errorMapImage}</p>
+                            {/if}
                         </div>
 
 

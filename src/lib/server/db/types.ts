@@ -13,6 +13,7 @@ export type Quiz = {
     is_current: boolean;
     rounds: Round[];
     length: number;
+    show_results: boolean;
 }
 
 export type Round = {
@@ -29,6 +30,7 @@ export type Blank = {
     quiz_id: string;
     player_name: string;
     state: string;
+    score: number;
 }
 
 export type Template = {
@@ -87,4 +89,9 @@ export type MapTemplate = {
 export type Player = {
     name: string;
     score: number;
+}
+
+export type Result = {
+    scores: number[];
+    final_score: number;
 }

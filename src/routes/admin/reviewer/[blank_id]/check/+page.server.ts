@@ -1,4 +1,11 @@
-import {changeBlankState, getAnswers, getBlank, getQuestions, getRoundById, updatePlayerScore} from "$lib/server/db";
+import {
+    changeBlankState,
+    getAnswers,
+    getBlank,
+    getQuestions,
+    getRoundById,
+    updateBlankScore,
+} from "$lib/server/db";
 import {type Actions, redirect} from "@sveltejs/kit";
 import type {Blank} from "$lib/server/db/types";
 
@@ -23,12 +30,12 @@ export const actions: Actions = {
         console.log(scores_unparsed);
         const scores = JSON.parse(scores_unparsed) as number[][];
         let final_score = 0;
-        for (let i = 0; i < scores.length; ++i){
-            for (let j = 0; j < scores[i].length; ++j){
+        for (let i = 0; i < scores.length; ++i) {
+            for (let j = 0; j < scores[i].length; ++j) {
                 final_score += scores[i][j];
             }
         }
-        await updatePlayerScore(blank.player_name, blank.quiz_id, final_score);
+        await updateBlankScore(blank.player_name, blank.quiz_id, blank.round_id, final_score);
         await changeBlankState(blank.id, "Проверен");
         redirect(303, `/admin/reviewer`);
     }

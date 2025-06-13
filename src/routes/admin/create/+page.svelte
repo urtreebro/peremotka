@@ -1,9 +1,11 @@
 <script lang="ts">
+     /** @type {import('./$types').ActionData} */
     import type {PageData} from "./$types";
     import {persist} from "svelte-use-persist";
     import type {Template} from "$lib/server/db/types";
 
     export let data: PageData;
+    export let form;
     let title = '';
     let number_of_rounds = 7;
     let roundTypes: string[] = [];
@@ -34,12 +36,15 @@
         <input
                 id="title"
                 type="text"
-                class="m-4 is-centered"
+                class="mt-5 is-centered"
                 value={title}
                 name='title'
                 placeholder="Введите название квиза"
         />
-        <div class="columns bulma-is-display-flex">
+        {#if form?.errorMessage}
+            <p class="has-text-danger">{form.errorMessage}</p>
+        {/if}
+        <div class="columns bulma-is-display-flex my-4">
             <h1 class="m-5">Количество раундов:</h1>
             <input
                     id="number-of-rounds"
@@ -92,7 +97,7 @@
     .create-form {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1rem;
     }
 
    .flex-box {

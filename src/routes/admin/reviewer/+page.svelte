@@ -6,18 +6,46 @@
 
     let current_quiz = data.current_quiz;
     let round_blanks = data.rounds_blanks;
+    let show_results = current_quiz.show_results;
+
+    function showResults() {
+        show_results = true;
+        const hide = document.getElementById('hide') as HTMLButtonElement;
+        hide.hidden = false;
+        const show = document.getElementById('show') as HTMLButtonElement;
+        show.hidden = true;
+    }
+
+    function hideResults() {
+        show_results = false;
+        const show = document.getElementById('show') as HTMLButtonElement;
+        show.hidden = false;
+        const hide = document.getElementById('hide') as HTMLButtonElement;
+        hide.hidden = true;
+    }
+
 </script>
 
 <div class="container">
     {#if current_quiz}
-        <h3 class="has-text-weight-bold title m-5">Текущий квиз: {current_quiz.title}</h3>
+        <h3 class="has-text-weight-bold title my-5">Текущий квиз: {current_quiz.title}</h3>
+        <form method="POST">
+            <input type="hidden" name="show_results" value={show_results}/>
+            <button class="show" on:click={showResults} id="show" hidden="{current_quiz.show_results}">Показать
+                результаты
+            </button>
+            <button class="hide" on:click={hideResults} id="hide" hidden="{!current_quiz.show_results}">Спрятать
+                результаты
+            </button>
+        </form>
         {#each round_blanks as round, idx}
             <div class="round">
                 <h2 class="has-text-weight-bold mt-4">Раунд {idx + 1}</h2>
-                <table>
-                    <tbody>
-                    {#if round.length > 0}
-                        {#each round as blank, idx2}
+                {#if round.length > 0}
+                    <table>
+                        <tbody>
+
+                        {#each round as blank}
                             <tr>
                                 <th>
                                     <h1>Команда: {blank.player_name}</h1>
@@ -43,12 +71,13 @@
                                 </td>
                             </tr>
                         {/each}
-                        {:else}
-                        <h1>Нет бланков</h1>
-                    {/if}
-                    </tbody>
 
-                </table>
+                        </tbody>
+
+                    </table>
+                {:else}
+                    <h1>Нет бланков</h1>
+                {/if}
             </div>
         {/each}
 
@@ -119,5 +148,15 @@
     .custom {
         color: gray;
         text-align: left;
+    }
+
+    .show {
+        background-color: limegreen;
+        margin: 0.5rem 0;
+    }
+
+    .hide {
+        background-color: crimson;
+        margin: 0.5rem 0;
     }
 </style>

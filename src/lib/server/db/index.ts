@@ -1,12 +1,14 @@
 import {DB_PATH} from "$env/static/private";
 import Database from "better-sqlite3";
 import type {
-    Answer, AnswerField,
+    Answer,
+    AnswerField,
     Blank,
     MagneticPoint,
     MapImage,
-    MapTemplate, Player,
-    Question, QuestionField,
+    MapTemplate,
+    Question,
+    QuestionField,
     Quiz,
     Round,
     SessionInfo,
@@ -46,7 +48,6 @@ function addPlayersTable() {
     (
         name TEXT NOT NULL,
         quiz_id TEXT NOT NULL,
-        score INTEGER NOT NULL,
         FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE,
         PRIMARY KEY (name, quiz_id)
         ) strict;
@@ -79,6 +80,7 @@ function addQuizzesTable() {
         id TEXT NOT NULL,
         title TEXT NOT NULL,
         is_current INTEGER NOT NULL,
+        show_results INTEGER NOT NULL,
         number_of_rounds INTEGER NOT NULL,
         PRIMARY KEY (id)
         ) strict;
@@ -115,6 +117,7 @@ function addBlanksTable() {
         player_name TEXT NOT NULL,
         quiz_id TEXT NOT NULL,
         state TEXT NOT NULL,
+        score INTEGER NOT NULL,
         foreign key (player_name, quiz_id) references players (name, quiz_id),
         foreign key (round_id) references rounds (id)
     ) strict;
@@ -276,10 +279,50 @@ export function getRoundById(round_id: number): Round {
 
 export function getNextRound(quiz_id: string, round_number: number): number {
     type Exists = {
-        'EXISTS(SELECT 1 FROM rounds  WHERE quiz_id = ? AND round_number = ?)': number;
+        round: number;
     }
-    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM rounds  WHERE quiz_id = ? AND round_number = ?)').get(quiz_id, round_number) as Exists;
-    return exists["EXISTS(SELECT 1 FROM rounds  WHERE quiz_id = ? AND round_number = ?)"] as number;
+    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM rounds  WHERE quiz_id = ? AND round_number = ?) as round').get(quiz_id, round_number) as Exists;
+    return exists.round as number;
+}
+
+export function checkPlayerExistence(quiz_id: string, player_name: string): boolean {
+    type Exists = {
+        player: boolean;
+    }
+    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM players where quiz_id = ? AND name = ?) AS player').get(quiz_id, player_name) as Exists;
+    return exists.player as boolean;
+}
+
+export function checkQuizIdExistence(quiz_id: string): boolean {
+    type Exists = {
+        quiz: boolean;
+    }
+    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM quizzes WHERE id = ?) as quiz').get(quiz_id) as Exists;
+    return exists.quiz as boolean;
+}
+
+export function checkQuizTitleExistence(quiz_title: string): boolean {
+    type Exists = {
+        quiz: boolean;
+    }
+    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM quizzes WHERE title = ?) as quiz').get(quiz_title) as Exists;
+    return exists.quiz as boolean;
+}
+
+export function checkTemplateTitleExistence(title: string): boolean {
+    type Exists = {
+        template: boolean;
+    }
+    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM round_templates WHERE title = ?) as template').get(title) as Exists;
+    return exists.template as boolean;
+}
+
+export function checkBlankExistence(player_name: string, round_id: number): boolean {
+    type Exists = {
+        blank: boolean;
+    }
+    const exists = db.prepare('SELECT EXISTS(SELECT 1 FROM blanks WHERE player_name = ? AND round_id = ?) as blank').get(player_name, round_id) as Exists;
+    return exists.blank as boolean;
 }
 
 export function getRounds(quiz_id: string): Round[] {
@@ -289,15 +332,24 @@ export function getRounds(quiz_id: string): Round[] {
 }
 
 export function getBlanks(round_id: number): Blank[] {
-    const blanks = db.prepare('SELECT id as id, round_id as round_id, player_name as player_name, quiz_id as quiz_id, state as state from blanks where round_id = ?').all(round_id);
+    const blanks = db.prepare('SELECT id as id, round_id as round_id, player_name as player_name, quiz_id as quiz_id, state as state, score as score from blanks where round_id = ?').all(round_id);
     return blanks as Blank[];
 }
 
 export function getBlank(blank_id: number): Blank {
-    const blank = db.prepare('SELECT id as id, round_id as round_id, player_name as player_name, quiz_id as quiz_id, state as state from blanks where id = ?').get(blank_id);
+    const blank = db.prepare('SELECT id as id, round_id as round_id, player_name as player_name, quiz_id as quiz_id, state as state, score as score from blanks where id = ?').get(blank_id);
     return blank as Blank;
 }
 
+export function getBlankId(player_name: string, round_id: number): number {
+    const blank = db.prepare('SELECT id from blanks where player_name = ? AND round_id = ?').get(player_name, round_id) as Blank;
+    return blank.id;
+}
+
+export function getBlankState(player_name: string, round_id: number): string {
+    const blank = db.prepare('SELECT state from blanks where player_name = ? AND round_id = ?').get(player_name, round_id) as Blank;
+    return blank.state;
+}
 
 export function getRoundTemplates(): Template[] {
     const templates = db.prepare('select id as id, title as title from round_templates').all();
@@ -396,11 +448,11 @@ export function getQuizLength(id: string): number {
 
 export async function createQuiz(title: string, id: string, number_of_rounds: number) {
     const sql = `
-        insert into quizzes (title, id, is_current, number_of_rounds)
-        values ($title, $id, $is_current, $number_of_rounds)
+        insert into quizzes (title, id, is_current, number_of_rounds, show_results)
+        values ($title, $id, $is_current, $number_of_rounds, $show_results)
     `
     const statement = db.prepare(sql);
-    statement.run({title, id, is_current: 0, number_of_rounds});
+    statement.run({title, id, is_current: 0, number_of_rounds, show_results: 0});
 }
 
 export async function makeCurrentQuiz(id: string, is_current: number) {
@@ -411,6 +463,16 @@ export async function makeCurrentQuiz(id: string, is_current: number) {
     `
     const statement = db.prepare(sql);
     statement.run({is_current, id});
+}
+
+export async function showQuizResults(id: string, show_results: number) {
+    const sql = `
+        update quizzes
+        set show_results = $show_results
+        where id = $id
+    `
+    const statement = db.prepare(sql);
+    statement.run({show_results, id});
 }
 
 export async function updateQuiz(id: string, title: string) {
@@ -432,21 +494,27 @@ export async function updateQuestionField(id: number, answer: string) {
     statement.run({id, correct_answer: answer});
 }
 
-export async function updatePlayerScore(player_name: string, quiz_id: string, score: number) {
+export async function updateBlankScore(player_name: string, quiz_id: string, round_id: number, score: number) {
     const sql = `
-    update players set score = $score
-    where name = $name and quiz_id = $quiz_id`
+        update blanks
+        set score = $score
+        where player_name = $player_name
+          and quiz_id = $quiz_id
+          and round_id = $round_id`
     const statement = db.prepare(sql);
-    statement.run({score, name: player_name, quiz_id});
+    statement.run({score, player_name, quiz_id, round_id});
 }
 
-export function getPlayersScores(quiz_id: string): Player[] {
-    const players = db.prepare(`SELECT name, score FROM players where quiz_id = ?`).all(quiz_id);
-    return players as Player[];
+export function getBlanksScores(round_id: number): Blank[] {
+    const blanks = db.prepare(`SELECT player_name, score
+                               FROM blanks
+                               where round_id = ?`).all(round_id);
+    return blanks as Blank[];
 }
+
 
 export function getCurrentQuiz(): Quiz {
-    const quiz = db.prepare('select q.title as title, q.id as id, q.is_current as is_current from quizzes q WHERE is_current = ? LIMIT 1').all(1);
+    const quiz = db.prepare('select q.title as title, q.id as id, q.is_current as is_current, q.number_of_rounds as length, q.show_results as show_results from quizzes q WHERE is_current = ? LIMIT 1').all(1);
     const quizzes = quiz as Quiz[];
     return quizzes[0] as Quiz;
 }
@@ -502,10 +570,10 @@ export async function createMapImage(slug: string, image: File) {
 }
 
 export async function createBlank(quiz_id: string, round_id: number, player_name: string, state: string) {
-    const sql = `insert into blanks (quiz_id, round_id, player_name, state)
-                 values ($quiz_id, $round_id, $player_name, $state)`
+    const sql = `insert into blanks (quiz_id, round_id, player_name, state, score)
+                 values ($quiz_id, $round_id, $player_name, $state, $score)`
     const statement = db.prepare(sql);
-    const result = statement.run({quiz_id, round_id, player_name, state});
+    const result = statement.run({quiz_id, round_id, player_name, state, score: 0});
     return result.lastInsertRowid;
 }
 
@@ -549,11 +617,11 @@ export async function createAnswerField(answer_id: number, answer: string, max_s
 
 export async function createPlayerUser(name: string, quiz_id: string): Promise<void> {
     const sql = `
-        insert into players (name, quiz_id, score)
-        values ($name, $quiz_id, $score)
+        insert into players (name, quiz_id)
+        values ($name, $quiz_id)
     `;
     const statement = db.prepare(sql);
-    statement.run({name, quiz_id, score: 0});
+    statement.run({name, quiz_id});
 }
 
 export async function createAdminUser(username: string, password: string): Promise<void> {

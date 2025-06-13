@@ -1,6 +1,6 @@
 <script lang="ts">
     import type {PageData} from './$types';
-    import type {Question, Template} from "$lib/server/db/types";
+    import type {Template} from "$lib/server/db/types";
     import {persist} from "svelte-use-persist";
     import {writable} from "svelte/store";
 

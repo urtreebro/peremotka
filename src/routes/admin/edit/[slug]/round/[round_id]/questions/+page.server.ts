@@ -1,6 +1,5 @@
 import {
-    createQuestion,
-    createQuestionField, getMapTemplate, getQuestions, getQuizLength,
+    getMapTemplate, getQuestions, getQuizLength,
     getRound,
     getRoundTemplate, updateQuestionField,
 } from '$lib/server/db'

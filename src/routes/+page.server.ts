@@ -1,5 +1,5 @@
 import {type Actions, type Cookies, fail, redirect} from "@sveltejs/kit";
-import {createPlayerUser, getCurrentQuiz} from "$lib/server/db";
+import {checkPlayerExistence, createPlayerUser, getCurrentQuiz} from "$lib/server/db";
 import {createSession} from "$lib/server/sessionStore";
 import type {PageServerLoad} from './$types';
 import type {Quiz} from "$lib/server/db/types";
@@ -27,6 +27,9 @@ export const actions: Actions = {
         const username = data.get('username')?.toString();
 
         if (username && current_quiz_1) {
+            if (checkPlayerExistence(current_quiz.id, username)){
+                return fail(400, {errorMessage: 'Команда с таким именем уже существует'})
+            }
             await createPlayerUser(username, current_quiz_1);
             performLogin(cookies, username);
             throw redirect(303, `/play/quiz/${current_quiz.id}/round/1/questions`);

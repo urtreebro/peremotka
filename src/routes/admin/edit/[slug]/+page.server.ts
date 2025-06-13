@@ -1,11 +1,12 @@
 import type {PageServerLoad} from "./$types";
-import {getQuiz, getRounds, getRoundTemplate, updateQuiz} from "$lib/server/db";
-import type {Template} from "$lib/server/db/types";
+import {checkQuizTitleExistence, getQuiz, getRounds, getRoundTemplate, updateQuiz} from "$lib/server/db";
+import type {Quiz, Template} from "$lib/server/db/types";
 import {type Actions, fail, redirect} from "@sveltejs/kit";
 
+let quiz: Quiz;
 export const load = (({params}) => {
     const quiz_id = params.slug;
-    const quiz = getQuiz(quiz_id);
+    quiz = getQuiz(quiz_id);
     quiz.rounds = getRounds(quiz_id);
     console.log(quiz_id, quiz);
     let templates: Template[] = [];
@@ -26,11 +27,14 @@ export const actions: Actions = {
         const data = await request.formData();
         const title = data.get('title')?.toString();
         if (title && params.slug) {
+            if (title !== quiz.title && checkQuizTitleExistence(title)){
+                return fail(400, {errorMessage: 'Квиз с таким названием уже существует'})
+            }
             await updateQuiz(params.slug, title)
             redirect(303, `/admin`);
         }
         else {
-            return fail(400, {errorMessage: 'Введите название квиза'})
+            return fail(400, {errorMessage: 'Введите название'})
         }
     }
 }

@@ -1,9 +1,9 @@
 import type {PageServerLoad} from "./$types";
 import {
-    changeBlankState,
+    changeBlankState, checkBlankExistence,
     createAnswer,
     createAnswerField,
-    createBlank, getMapTemplate,
+    createBlank, getBlankId, getBlankState, getMapTemplate,
     getQuizLength,
     getRound,
     getRoundTemplate
@@ -17,7 +17,7 @@ let blank_id: number;
 let template: Template;
 
 export const actions: Actions = {
-    submit: async ({request, locals}) => {
+    submit: async ({request}) => {
         const data = await request.formData();
         const answers_str = data.getAll('answers').toString();
         const answers: Answer[] = JSON.parse(answers_str);
@@ -48,7 +48,6 @@ export const actions: Actions = {
             throw redirect(303, `/play/quiz/${slug}/round/${round_number + 1}/questions`);
         }
         else {
-            locals.completed = true;
             redirect(303, '/play/results');
         }
     }
@@ -58,8 +57,23 @@ export const load = (async ({params, locals: {username}}) => {
     const round = getRound(params.quiz_id, parseInt(params.round_id));
     slug = params.quiz_id;
     round_number = parseInt(params.round_id);
-    // @ts-ignore
-    blank_id = <number>await createBlank(slug, round.round_id, username, "Не сдан");
+    if (!username) return;
+    if (!checkBlankExistence(username, round.round_id)) {
+        blank_id = <number>await createBlank(slug, round.round_id, username, "Не сдан");
+    }
+    else {
+        blank_id = getBlankId(username, round.round_id);
+        const state = getBlankState(username, round.round_id);
+        if (state !== 'Не сдан') {
+            const quiz_length = getQuizLength(slug);
+            if (round_number + 1 <= quiz_length) {
+                redirect(303, `/play/quiz/${slug}/round/${round_number + 1}/questions`);
+            }
+            else {
+                redirect(303, '/play/results');
+            }
+        }
+    }
     template = getRoundTemplate(round.round_template_id);
     let map_template: MapTemplate = {id: '', title: '', points: []};
     if (template.specials === 'geography') {

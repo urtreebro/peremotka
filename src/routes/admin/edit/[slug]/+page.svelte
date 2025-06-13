@@ -19,7 +19,7 @@
         <input
                 id="title"
                 type="text"
-                class="m-4 is-centered"
+                class="mt-5 is-centered"
                 value={quiz.title}
                 name='title'
                 placeholder="Введите название квиза"
@@ -29,7 +29,7 @@
         {/if}
 
         {#each quiz.rounds as _, index}
-            <div class="flex-box">
+            <div class="flex-box mt-2">
                 <div class="flex-box-2">
                     <h2 class="m-2 has-text-weight-bold">Раунд {index + 1}</h2>
                     <h2 class="m-2">Шаблон: {templates[index].title}</h2>
@@ -86,7 +86,7 @@
     .create-form {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1rem;
     }
 
     button {

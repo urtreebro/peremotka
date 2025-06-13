@@ -21,10 +21,12 @@ const csrf = (
         error(403, `Cross-site ${request.method} form submissions are forbidden`);
     }
 };
+
 function isContentType(request: Request, ...types: string[]) {
     const type = request.headers.get("content-type")?.split(";", 1)[0].trim() ?? "";
     return types.includes(type.toLowerCase());
 }
+
 function isFormContentType(request: Request) {
     // These content types must be protected against CSRF
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/enctype
@@ -57,9 +59,6 @@ export const handle = (async ({event, resolve}) => {
             }
             if (event.locals.role === 'player' && event.route.id !== null && event.route.id === '/') {
                 redirect(302, '/play');
-            }
-            if (event.locals.completed && event.route.id !== null && event.route.id.startsWith('/play/quiz')) {
-                redirect(302, '/play/results');
             }
         }
         else {
