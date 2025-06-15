@@ -5,6 +5,7 @@
     export let data: PageData;
 
     let quizzes = data.quizzes;
+
     function createNewQuiz() {
         goto('/admin/create');
     }
@@ -28,7 +29,7 @@
                                 {#if !quiz.is_current}
                                     <button class="flex-box-2 m-3 make_current_btn" formaction="?/make_current">Сделать текущим</button>
                                 {:else}
-                                    <button class="flex-box-2 m-3 unmake_current_btn" formaction="?/unmake_current">Текущая игра</button>
+                                    <button class="flex-box-2 m-3 unmake_current_btn" formaction="?/unmake_current">Текущий квиз</button>
                                 {/if}
                                 <button class="flex-box-2 mt-3 mb-3"  formaction="?/edit">Редактировать</button>
                                 <button class="flex-box-2 m-3" formaction="?/delete">Удалить</button>
@@ -52,13 +53,16 @@
 
     .flex-box {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         outline: 2px solid #ddd;
     }
 
     .flex-box-2 {
         display: flex;
+        flex-wrap: wrap;
         justify-content: flex-end;
+        font-size: 13pt;
     }
 
     .quiz-library {

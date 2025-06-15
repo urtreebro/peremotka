@@ -32,6 +32,7 @@ export const actions: Actions = {
         const number_of_questions = parseInt(<string>data.get('number_of_questions')?.toString());
         const number_of_fields = parseInt(<string>data.get('number_of_fields')?.toString());
         const placeholders_str = data.getAll('placeholders').toString();
+        const isSpecialsChecked = data.get('isSpecialsChecked')?.toString();
         const special = data.getAll('selected')?.toString();
         const placeholders: string[] = JSON.parse(placeholders_str);
         for (const placeholder of placeholders) {
@@ -44,20 +45,22 @@ export const actions: Actions = {
         const slugify = require('slugify');
         const slug = slugify(title);
         let map_id = '';
-        if (special == 'geography') {
-            const points = data.getAll('points').toString();
-            const image = data.get('mapImage')?.valueOf() as File;
-            if (image.size == 0) {
-                return fail(400, {errorMapImage: 'Выберите изображение'})
-            }
-            const map_title = data.get('mapTitle')?.toString();
-            if (!map_title) {
-                return fail(400, {errorMapImage: 'Введите название карты'})
-            }
-            map_id = slugify(map_title);
+        if (isSpecialsChecked === 'true') {
+            if (special == 'geography') {
+                const points = data.getAll('points').toString();
+                const image = data.get('mapImage')?.valueOf() as File;
+                if (!image || image.size == 0) {
+                    return fail(400, {errorMapImage: 'Выберите изображение'})
+                }
+                const map_title = data.get('mapTitle')?.toString();
+                if (!map_title) {
+                    return fail(400, {errorMapImage: 'Введите название карты'})
+                }
+                map_id = slugify(map_title);
 
-            await createMapTemplate(map_id, map_title, points);
-            await createMapImage(map_id, image);
+                await createMapTemplate(map_id, map_title, points);
+                await createMapImage(map_id, image);
+            }
         }
         if (title) {
             if (checkTemplateTitleExistence(title)) {

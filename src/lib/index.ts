@@ -1,15 +1,23 @@
 // place files you want to import through the `$lib` alias in this folder.
 import stringSimilarity from "string-similarity";
 import {metaphone} from "metaphone";
-import removeAccents from "remove-accents";
 import * as levenshtein from 'fast-levenshtein';
+// @ts-ignore
+import isGibberish from 'is-gibberish';
 
 function normalizeText(text: string): string {
-    let normalized = removeAccents(text);
-    normalized = normalized.toLowerCase();
+    let normalized = text.toLowerCase();
     normalized = normalized.replace(/[^\p{L}\p{N}\s]/gu, "");
     normalized = normalized.replace(/\s+/g, " ").trim();
     return normalized;
+}
+
+function detectLanguage(text: string): string {
+    const cyrillicPattern = /^\p{Script=Cyrillic}/u;
+    if (cyrillicPattern.test(text)) {
+        return 'ru';
+    }
+    return 'en';
 }
 
 class UniversalMatcher {
@@ -71,14 +79,6 @@ class UniversalMatcher {
         return metaphone(text);
     }
 
-    private detectLanguage(text: string): string {
-        const cyrillicPattern = /^\p{Script=Cyrillic}/u;
-        if (cyrillicPattern.test(text)) {
-            return 'ru';
-        }
-        return 'en';
-    }
-
     private CyrillicTransliteration(text: string): string {
         const translitMap1: Record<string, string> = {
             'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
@@ -112,7 +112,7 @@ class UniversalMatcher {
                 if (a[i] !== b[i]) {
                     const charA = a[i];
                     const charB = b[i];
-                    const lang = this.detectLanguage(charA);
+                    const lang = detectLanguage(charA);
                     if (lang === 'ru') {
                         if (this.keyboardLayouts['russian'][charA]?.includes(charB) ||
                             this.keyboardLayouts['russian'][charB]?.includes(charA)) {
@@ -132,14 +132,14 @@ class UniversalMatcher {
         return false;
     }
 
-    public async areStringsSimilar(correct: string, answer: string): Promise<boolean> {
+    public areStringsSimilar(correct: string, answer: string): boolean {
         const directSimilarity = stringSimilarity.compareTwoStrings(correct, answer);
         if (directSimilarity >= this.similarityThreshold) {
             return true;
         }
 
-        const lang1 = this.detectLanguage(correct);
-        const lang2 = this.detectLanguage(answer);
+        const lang1 = detectLanguage(correct);
+        const lang2 = detectLanguage(answer);
 
         if (lang1 !== lang2) {
             let translated1: string
@@ -196,6 +196,13 @@ class KeyboardLayoutMatcher {
                 ';': 'ж', "'": 'э', 'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и',
                 'n': 'т', 'm': 'ь', ',': 'б', '.': 'ю', '/': '.', " ": " ",
             },
+            'en': {
+                'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г',
+                'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х', ']': 'ъ', 'a': 'ф', 's': 'ы',
+                'd': 'в', 'f': 'а', 'g': 'п', 'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д',
+                ';': 'ж', "'": 'э', 'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и',
+                'n': 'т', 'm': 'ь', ',': 'б', '.': 'ю', '/': '.', " ": " ",
+            }
         };
     }
 
@@ -266,33 +273,102 @@ class KeyboardLayoutMatcher {
     }
 }
 
-class StringMatcher {
-    private keyboardMatcher: KeyboardLayoutMatcher;
-    private universalMatcher: UniversalMatcher;
+class KeyboardLayoutConverter {
+    private readonly layoutMaps: Record<string, Record<string, string>>;
 
     constructor() {
-        this.keyboardMatcher = new KeyboardLayoutMatcher();
-        this.universalMatcher = new UniversalMatcher();
+        this.layoutMaps = {
+            'en': {
+                'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г',
+                'i': 'ш', 'o': 'щ', 'p': 'з', '[': 'х', ']': 'ъ', 'a': 'ф', 's': 'ы',
+                'd': 'в', 'f': 'а', 'g': 'п', 'h': 'р', 'j': 'о', 'k': 'л', 'l': 'д',
+                ';': 'ж', "'": 'э', 'z': 'я', 'x': 'ч', 'c': 'с', 'v': 'м', 'b': 'и',
+                'n': 'т', 'm': 'ь', ',': 'б', '.': 'ю', '/': '.'
+            },
+            'ru': {
+                'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
+                'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
+                'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
+                'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
+                'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', '.': '/'
+            },
+        };
     }
 
-    public async areStringsSimilar(correct: string, answer: string): Promise<boolean> {
-        correct = normalizeText(correct);
-        answer = normalizeText(answer);
+    public detectLayoutMistake(input: string): string | null {
+        const normalized = input.toLowerCase();
+        const layout = detectLanguage(normalized);
 
-        if (correct === answer) {
-            return true;
+        for (const [layoutName, layoutMap] of Object.entries(this.layoutMaps)) {
+            if (layoutName !== layout) continue;
+            const candidate = this.convertText(normalized, layoutMap);
+
+            if (candidate === normalized) continue;
+            return candidate;
         }
 
+        return null;
+    }
 
-        if (this.keyboardMatcher.areStringsSimilar(correct, answer)) {
-            return true;
+    private convertText(text: string, mapping: Record<string, string>): string {
+        let result = '';
+        for (const char of text) {
+            result += mapping[char] || char;
         }
-
-        return await this.universalMatcher.areStringsSimilar(correct, answer);
+        return result;
     }
 }
 
-export async function checkStringSimilarity(correct: string, answer: string): Promise<boolean> {
+class StringMatcher {
+    private readonly converter: KeyboardLayoutConverter;
+    private universalMatcher: UniversalMatcher;
+    private keyboardMatcher: KeyboardLayoutMatcher;
+    private readonly similarityThreshold: number;
+
+    constructor(similarityThreshold = 0.7) {
+        this.converter = new KeyboardLayoutConverter();
+        this.universalMatcher = new UniversalMatcher();
+        this.keyboardMatcher = new KeyboardLayoutMatcher();
+        this.similarityThreshold = similarityThreshold;
+    }
+
+    public areStringsSimilar(correct: string, answer: string): { isSimilar: boolean, suggestion?: string } {
+        correct = normalizeText(correct);
+        answer = normalizeText(answer);
+        if (correct === answer) {
+            return {isSimilar: true};
+        }
+
+
+        if (stringSimilarity.compareTwoStrings(correct, answer) >= this.similarityThreshold) {
+            return {isSimilar: true};
+        }
+
+        if (this.universalMatcher.areStringsSimilar(correct, answer)) {
+            return {isSimilar: true};
+        }
+        if (isGibberish(answer)) {
+            const suggestion = this.converter.detectLayoutMistake(answer);
+
+            if (suggestion) {
+                const checkedSuggestion = this.universalMatcher.areStringsSimilar(correct, suggestion);
+                if (checkedSuggestion) {
+                    return {isSimilar: true, suggestion: suggestion};
+                }
+                const similarity = stringSimilarity.compareTwoStrings(suggestion, correct);
+
+                if (similarity >= this.similarityThreshold) {
+                    return {isSimilar: true, suggestion: suggestion};
+                }
+                else return {isSimilar: false, suggestion: suggestion};
+            }
+        }
+
+        return {isSimilar: false};
+    }
+}
+
+export function checkStringSimilarity(correct: string, answer: string): { isSimilar: boolean, suggestion?: string } {
     const matcher = new StringMatcher();
-    return await matcher.areStringsSimilar(correct, answer);
+    return matcher.areStringsSimilar(correct, answer);
 }

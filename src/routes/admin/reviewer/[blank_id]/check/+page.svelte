@@ -10,28 +10,37 @@
     const player_answers = data.player_answers;
     const blank = data.blank;
 
+
     const scores: number[][] = [];
+    const suggestions: string[][] = [];
     scores.length = correct_answers.length;
+    suggestions.length = correct_answers.length;
     for (let i = 0; i < scores.length; i++) {
         scores[i] = [];
+        suggestions[i] = [];
         for (let j = 0; j < correct_answers[i].question_fields.length; j++) {
             scores[i].push(0);
+            suggestions[i].push('');
         }
     }
 
-    async function check(first: string, second: string) {
-        return await checkStringSimilarity(first, second);
+    function check(first: string, second: string): { isSimilar: boolean, suggestion?: string } {
+        return checkStringSimilarity(first, second);
     }
 
     async function checkAnswers() {
         for (let i = 0; i < correct_answers.length; i++) {
             for (let j = 0; j < correct_answers[i].question_fields.length; j++) {
                 const result = check(correct_answers[i].question_fields[j].correct_answer, player_answers[i].answer_fields[j].answer);
-                if (await result) {
+                if (result.isSimilar) {
                     markAsCorrect(i, j);
                 }
                 else {
                     markAsIncorrect(i, j);
+                }
+                if (result.suggestion) {
+                    suggestions[i][j] = result.suggestion;
+                    showSuggestion(i, j);
                 }
             }
         }
@@ -57,6 +66,11 @@
         scores[i][j] = 0;
 
     }
+
+    function showSuggestion(i: number, j: number) {
+        const field = document.getElementById(`suggest${i}-${j}`)!;
+        field.hidden = false;
+    }
 </script>
 
 <h1>Бланк команды {blank.player_name}</h1>
@@ -78,6 +92,7 @@
                 <div class="row">
                     <div class="column1">
                         <h1 id="answer{idx}-{idx2}">{field.answer}</h1>
+                        <h1 hidden="{true}" id="suggest{idx}-{idx2}">Возможно имели в виду: {suggestions[idx][idx2]}</h1>
                     </div>
                     <div class="column1">
                         <h1>{correct_answers[idx].question_fields[idx2].correct_answer}</h1>

@@ -14,7 +14,6 @@ const require = createRequire(import.meta.url);
 export const load = (() => {
     const templates = getRoundTemplates();
 
-    console.log(templates);
     return {
         templates,
     };
@@ -36,19 +35,16 @@ export const actions: Actions = {
             let quiz_id = slug;
             let idx = 1;
             while (checkQuizIdExistence(quiz_id)) {
-                console.log('tried', quiz_id);
                 quiz_id = slug + idx.toString();
-                console.log(quiz_id)
                 idx++;
             }
             await createQuiz(title, quiz_id, rounds_parsed.length);
-            for (const round of rounds_parsed) {
-                const index = rounds_parsed.indexOf(round);
-
-                if (round != 'null') {
-                    await createRound(index + 1, quiz_id, round);
+            for (let i = 0; i < rounds_parsed.length; ++i){
+                if (rounds_parsed[i] != 'null'){
+                    await createRound(i + 1, quiz_id, rounds_parsed[i]);
                 }
             }
+
             if (rounds_parsed[0] != 'null') {
                 throw redirect(303, `/admin/create/${quiz_id}/round/1/questions`);
             }

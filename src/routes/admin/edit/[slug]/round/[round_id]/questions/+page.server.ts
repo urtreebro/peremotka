@@ -1,5 +1,5 @@
 import {
-    getMapTemplate, getQuestions, getQuizLength,
+    getMapTemplate, getQuestions,
     getRound,
     getRoundTemplate, updateQuestionField,
 } from '$lib/server/db'
@@ -9,7 +9,6 @@ import type {MapTemplate, Question, Round, Template} from "$lib/server/db/types"
 
 
 let slug = '';
-let round_number: number;
 let round_template: Template;
 let round: Round;
 let questions: Question[];
@@ -49,8 +48,6 @@ export const actions: Actions = {
                 }
             }
         }
-        const quiz_length = getQuizLength(slug);
-        console.log(quiz_length);
         redirect(303, `/admin/edit/${slug}`)
     }
 }
@@ -65,7 +62,6 @@ export const load = (({params}) => {
         map_template = getMapTemplate(round_template.content);
     }
     slug = params.slug;
-    round_number = parseInt(params.round_id);
     return {
         round_template,
         round,

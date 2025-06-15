@@ -6,7 +6,10 @@
 
     let current_quiz = data.current_quiz;
     let round_blanks = data.rounds_blanks;
-    let show_results = current_quiz.show_results;
+    let show_results: boolean;
+    if (current_quiz) {
+        show_results = current_quiz.show_results;
+    }
 
     function showResults() {
         show_results = true;
@@ -28,8 +31,8 @@
 
 <div class="container">
     {#if current_quiz}
-        <h3 class="has-text-weight-bold title my-5">Текущий квиз: {current_quiz.title}</h3>
-        <form method="POST">
+        <h3 class="has-text-weight-bold title my-5 mx-2">Текущий квиз: {current_quiz.title}</h3>
+        <form class="mx-2" method="POST">
             <input type="hidden" name="show_results" value={show_results}/>
             <button class="show" on:click={showResults} id="show" hidden="{current_quiz.show_results}">Показать
                 результаты
@@ -39,7 +42,7 @@
             </button>
         </form>
         {#each round_blanks as round, idx}
-            <div class="round">
+            <div class="round mx-2">
                 <h2 class="has-text-weight-bold mt-4">Раунд {idx + 1}</h2>
                 {#if round.length > 0}
                     <table>
@@ -82,7 +85,7 @@
         {/each}
 
     {:else}
-        <h1 class="title has-text-weight-bold">Нет активного квиза</h1>
+        <h1 class="title has-text-weight-bold my-5 mx-2">Нет текущего квиза</h1>
     {/if}
 </div>
 
@@ -151,7 +154,7 @@
     }
 
     .show {
-        background-color: limegreen;
+        background-color: #06c706;
         margin: 0.5rem 0;
     }
 

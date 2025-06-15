@@ -327,7 +327,6 @@ export function checkBlankExistence(player_name: string, round_id: number): bool
 
 export function getRounds(quiz_id: string): Round[] {
     const round = db.prepare('SELECT r.round_template_id as round_template_id, r.id as round_id, r.round_number as round_number FROM rounds r WHERE r.quiz_id = ?').all(quiz_id);
-    console.log(round)
     return round as Round[];
 }
 

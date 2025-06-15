@@ -45,9 +45,6 @@
         placeholders.length = number_of_fields;
     }
 
-    function handleChange() {
-        console.log(placeholders);
-    }
 
     let isSpecialsChecked = false;
     let selected = '';
@@ -82,7 +79,6 @@
         }
         keyboardEvent.preventDefault();
 
-        console.log('smth');
         if ($points.value.length > 0) {
             $points.value.pop();
             $points = $points;
@@ -135,11 +131,11 @@
             >
         </div>
 
-        <div>
-            <h1>Что надо ввести в поле?</h1>
+        <div class="m-4">
+<!--TODO: числовое значение в поле? -->
+            <h1 class="my-3">Что надо ввести в поле?</h1>
             {#each placeholders as _, idx}
-                <input class="mr-5" type="text" id="placeholder" name="placeholder" placeholder="Название" bind:value={placeholders[idx]}
-                       on:input={() => handleChange()}/>
+                <input class="mr-5" type="text" id="placeholder" name="placeholder" placeholder="Название" bind:value={placeholders[idx]}/>
             {/each}
             {#if form?.errorNoPlaceholder}
                 <p class="has-text-danger">{form.errorNoPlaceholder}</p>
@@ -150,6 +146,7 @@
         <input type="hidden" name="points" value="{JSON.stringify($points.value)}"/>
         <input type="hidden" name="selectedImage" value="{selectedImage}"/>
         <input type="hidden" name="mapTitle" value="{mapTitle}"/>
+        <input type="hidden" name="isSpecialsChecked" value="{isSpecialsChecked}"/>
         <div class="m-4">
             <input type="checkbox" id="specials" name="specials" bind:checked="{isSpecialsChecked}">
             <label for="specials">Специальные механики</label>
@@ -160,6 +157,7 @@
                     <label for="geography">География</label>
                 </fieldset>
                 {#if selected === 'geography'}
+                    <!--TODO: изменить вид точек, добавить инструкцию-->
                     <div class="m-4 is-centered">
                         <div>
                             <input class="m-4" type="text" id="mapTitle" name="mapTitle" bind:value='{mapTitle}' placeholder="Название карты"/>
@@ -196,6 +194,7 @@
                     </div>
 
                 {/if}
+            <!--TODO:совпадение, каунтдаун, лото-->
             {/if}
         </div>
 

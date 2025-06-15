@@ -36,7 +36,6 @@
         if (event.dataTransfer) {
             event.dataTransfer.setData('text/plain', number.toString());
         }
-        console.log($numberAssignments.value);
     }
 
     function handleDrop(event: DragEvent, pointId: number) {

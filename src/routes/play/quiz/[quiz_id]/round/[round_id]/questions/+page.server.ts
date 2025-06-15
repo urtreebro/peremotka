@@ -9,18 +9,29 @@ import {
     getRoundTemplate
 } from "$lib/server/db";
 import {type Actions, redirect} from "@sveltejs/kit";
-import type {Answer, MapTemplate, Template} from "$lib/server/db/types";
+import type {Answer, MapTemplate, Round, Template} from "$lib/server/db/types";
 
 let round_number: number;
 let slug: string;
 let blank_id: number;
 let template: Template;
+let round: Round;
 
 export const actions: Actions = {
-    submit: async ({request}) => {
+    submit: async ({request, locals: {username}}) => {
         const data = await request.formData();
         const answers_str = data.getAll('answers').toString();
         const answers: Answer[] = JSON.parse(answers_str);
+        const state = getBlankState(username!, round.round_id);
+        if (state !== 'Не сдан') {
+            const quiz_length = getQuizLength(slug);
+            if (round_number + 1 <= quiz_length) {
+                throw redirect(303, `/play/quiz/${slug}/round/${round_number + 1}/questions`);
+            }
+            else {
+                redirect(303, '/play/results');
+            }
+        }
         await changeBlankState(blank_id, "Не проверен");
         for (const answer of answers) {
             let answer_id = <number>await createAnswer(answer.blank_id, '');
@@ -54,7 +65,7 @@ export const actions: Actions = {
 }
 
 export const load = (async ({params, locals: {username}}) => {
-    const round = getRound(params.quiz_id, parseInt(params.round_id));
+    round = getRound(params.quiz_id, parseInt(params.round_id));
     slug = params.quiz_id;
     round_number = parseInt(params.round_id);
     if (!username) return;
@@ -78,7 +89,6 @@ export const load = (async ({params, locals: {username}}) => {
     let map_template: MapTemplate = {id: '', title: '', points: []};
     if (template.specials === 'geography') {
         map_template = getMapTemplate(template.content);
-        console.log(map_template);
     }
     return {
         round,

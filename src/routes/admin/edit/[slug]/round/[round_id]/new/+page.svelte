@@ -38,10 +38,6 @@
         placeholders.length = number_of_fields;
     }
 
-    function handleChange() {
-        console.log(placeholders);
-    }
-
     let isSpecialsChecked = false;
     let selected = '';
     let mapTitle = '';
@@ -75,7 +71,6 @@
         }
         keyboardEvent.preventDefault();
 
-        console.log('smth');
         if ($points.value.length > 0) {
             $points.value.pop();
             $points = $points;
@@ -120,8 +115,7 @@
         >
         <div>
             {#each placeholders as placeholder, idx}
-                <input type="text" id="placeholder" name="placeholder" bind:value={placeholders[idx]}
-                       on:input={() => handleChange()}/>
+                <input type="text" id="placeholder" name="placeholder" bind:value={placeholders[idx]}/>
             {/each}
         </div>
         <input type="hidden" id="placeholders" name="placeholders" value="{JSON.stringify(placeholders)}"/>

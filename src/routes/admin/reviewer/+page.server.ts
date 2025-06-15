@@ -16,8 +16,6 @@ export const load = (() => {
             rounds_blanks[round.round_number - 1].sort((a, b) => order.indexOf(a.state) - order.indexOf(b.state));
         }
     }
-    console.log(456);
-
     return {
         current_quiz,
         rounds_blanks,
@@ -28,7 +26,6 @@ export const actions: Actions = {
     default: async ({request}) => {
         const data = await request.formData();
         const show_results = data.get("show_results")?.toString();
-        console.log(show_results,123);
         if (show_results === 'true') {
             await showQuizResults(current_quiz.id, 1);
         }

@@ -20,7 +20,7 @@ export const actions: Actions = {
         const number_of_fields = parseInt(<string>data.get('number_of_fields')?.toString());
         const placeholders_str = data.getAll('placeholders').toString();
         const special = data.getAll('selected')?.toString();
-        console.log(special, 9201920298);
+
         const placeholders: string[] = JSON.parse(placeholders_str);
         const placeholders_string = placeholders.join(';');
         const slugify = require('slugify');
@@ -29,11 +29,9 @@ export const actions: Actions = {
         if (special == 'geography'){
             const points = data.getAll('points').toString();
             const image = data.get('mapImage')?.valueOf() as File;
-            console.log(points);
             const map_title = data.get('mapTitle')?.toString();
             map_id = slugify(map_title);
-            console.log(map_id, map_title);
-            console.log(image.arrayBuffer());
+
             if (image) {
                 await createMapTemplate(map_id, map_title!, points);
                 await createMapImage(map_id, image);

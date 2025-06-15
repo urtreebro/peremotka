@@ -13,7 +13,7 @@ export const load = (async () => {
         for (const blank of blanks) {
             if (results.has(blank.player_name)) {
                 results.set(blank.player_name, {
-                    scores: [...results.get(blank.player_name)!.scores],
+                    scores: [...results.get(blank.player_name)!.scores, blank.score],
                     final_score: results.get(blank.player_name)!.final_score + blank.score
                 });
             }

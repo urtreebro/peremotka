@@ -4,7 +4,6 @@
 	export let data: PageData;
 
 	let quiz = data.quiz;
-	console.log(quiz);
 </script>
 
 <div class="container" style="max-width: 800px">

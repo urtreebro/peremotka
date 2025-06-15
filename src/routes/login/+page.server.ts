@@ -18,8 +18,8 @@ export const actions: Actions = {
             await createAdminUser(username, password);
             performLogin(cookies, username);
             throw redirect(303, '/admin');
-        } else {
-            console.log('Missing username or password', data);
+        }
+        else {
             return fail(400, { errorMessage: 'Не введено имя пользователя или пароль' });
         }
     },

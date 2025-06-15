@@ -8,7 +8,6 @@ export const load = (({params}) => {
     const quiz_id = params.slug;
     quiz = getQuiz(quiz_id);
     quiz.rounds = getRounds(quiz_id);
-    console.log(quiz_id, quiz);
     let templates: Template[] = [];
     templates.length = quiz.length;
     for (const round of quiz.rounds) {

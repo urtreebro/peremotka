@@ -15,6 +15,7 @@ export const load = (async ({params}) => {
     const round = getRoundById(blank.round_id);
     const correct_answers = getQuestions(blank.round_id);
     const player_answers = getAnswers(blank.id);
+
     return {
         blank,
         round,
@@ -27,7 +28,6 @@ export const actions: Actions = {
     save: async ({request}) => {
         const data = await request.formData();
         const scores_unparsed = data.getAll("scores").toString();
-        console.log(scores_unparsed);
         const scores = JSON.parse(scores_unparsed) as number[][];
         let final_score = 0;
         for (let i = 0; i < scores.length; ++i) {

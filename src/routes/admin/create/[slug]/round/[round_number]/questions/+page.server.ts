@@ -42,7 +42,6 @@ export const actions: Actions = {
             }
         }
         const quiz_length = getQuizLength(slug);
-        console.log(quiz_length);
         if (round_number + 1 <= quiz_length) {
             const exists = getNextRound(slug, round_number + 1);
             if (exists !== 0) {
@@ -64,7 +63,6 @@ export const load = (({params}) => {
     let map_template: MapTemplate = {id: '', title: '', points: []};
     if (round_template.specials === 'geography') {
         map_template = getMapTemplate(round_template.content);
-        console.log(map_template);
     }
     slug = params.slug;
     round_number = parseInt(params.round_number);
